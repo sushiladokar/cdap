@@ -199,12 +199,12 @@ public class ServiceClient {
    * @throws NotFoundException @throws NotFoundException if the app or service could not be found
    * @throws IOException if a network error occurred
    * @throws UnauthenticatedException if the request is not authorized successfully in the gateway server
-   * @deprecated since 4.0.0. Please use {@link #getServiceURL(ProgramId)}  instead
    */
-  @Deprecated
   public URL getServiceURL(Id.Service service)
     throws NotFoundException, IOException, UnauthenticatedException, UnauthorizedException {
-    return getServiceURL(service.toEntityId());
+    return config.resolveNamespacedURLV3(service.getNamespace(),
+                                         String.format("apps/%s/services/%s/methods/",
+                                                       service.getApplicationId(), service.getId()));
   }
 
   public URL getServiceURL(ProgramId service)
