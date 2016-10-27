@@ -84,9 +84,7 @@ public class UserServiceEndpointStrategy extends AbstractEndpointStrategy {
     while (iterator.hasNext()) {
       Discoverable candidate = iterator.next();
       String version = Bytes.toString(candidate.getPayload());
-      int weight = fetchWeight(version, routeConfig);
-      wSum += weight;
-      double randomPick = wSum * random.nextDouble();
+      int sign = 1;
       if (!routeConfig.isValid()) {
         // Fallback strategy is set to smallest/largest, so choose a random endpoint that has smallest/largest version
         if (minMaxVersion == null) {
@@ -103,14 +101,18 @@ public class UserServiceEndpointStrategy extends AbstractEndpointStrategy {
             minMaxVersion = version;
             // Since we found a version smaller/larger than the previously seen minMaxVersion, then reset the pick
             result = null;
-            randomPick = 0;
+            // Make randomPick to be negative to ensure this version gets picked
+            sign = -1;
           } else if (resetMinMaxVersion < 0) {
             continue;
           }
         }
       }
-      // if pick probability is greater, retain the candidate
-      if (randomPick <= weight) {
+      int weight = fetchWeight(version, routeConfig);
+      wSum += weight;
+      double randomWeight = wSum * random.nextDouble() * sign;
+      // pick the current candidate with probability randomWeight/weight
+      if (randomWeight <= weight) {
         result = candidate;
       }
     }

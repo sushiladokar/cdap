@@ -20,12 +20,13 @@ import org.apache.twill.discovery.ServiceDiscovered;
 
 import java.util.Iterator;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Randomly picks endpoint from the list of available endpoints.
  */
 public final class RandomEndpointStrategy extends AbstractEndpointStrategy {
-  private Random random = new Random();
+  private Random random = ThreadLocalRandom.current();
   /**
    * Constructs a random endpoint strategy with the given {@link ServiceDiscovered}.
    */
