@@ -25,7 +25,7 @@ import java.util.Random;
  * Randomly picks endpoint from the list of available endpoints.
  */
 public final class RandomEndpointStrategy extends AbstractEndpointStrategy {
-
+  private Random random = new Random();
   /**
    * Constructs a random endpoint strategy with the given {@link ServiceDiscovered}.
    */
@@ -38,7 +38,6 @@ public final class RandomEndpointStrategy extends AbstractEndpointStrategy {
     // Reservoir sampling
     Discoverable result = null;
     Iterator<Discoverable> itor = serviceDiscovered.iterator();
-    Random random = new Random();
     int count = 0;
     while (itor.hasNext()) {
       Discoverable next = itor.next();
