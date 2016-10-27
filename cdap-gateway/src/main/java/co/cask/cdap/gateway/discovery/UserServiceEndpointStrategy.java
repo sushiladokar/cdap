@@ -37,7 +37,6 @@ public class UserServiceEndpointStrategy extends AbstractEndpointStrategy {
   private final RouteStore routeStore;
   private final ProgramId serviceId;
   private final String version;
-  private final Random random;
   private final RouteFallbackStrategy fallbackStrategy;
   private final RandomEndpointStrategy versionedRandomEndpointStrategy;
 
@@ -47,7 +46,6 @@ public class UserServiceEndpointStrategy extends AbstractEndpointStrategy {
     this.routeStore = routeStore;
     this.serviceId = serviceId;
     this.version = version;
-    this.random = ThreadLocalRandom.current();
     this.fallbackStrategy = fallbackStrategy;
     this.versionedRandomEndpointStrategy = new RandomEndpointStrategy(
       new VersionFilteredServiceDiscovered(serviceDiscovered, version));
@@ -110,9 +108,10 @@ public class UserServiceEndpointStrategy extends AbstractEndpointStrategy {
       }
       int weight = fetchWeight(version, routeConfig);
       wSum += weight;
-      double randomWeight = wSum * random.nextDouble() * sign;
-      // pick the current candidate with probability randomWeight/weight
-      if (randomWeight <= weight) {
+      // randomWeight is a random number [0, wSum) with wSum possible values
+      double randomWeight = ThreadLocalRandom.current().nextInt(wSum) * sign;
+      // pick the current candidate with probability weight/wSum
+      if (randomWeight < weight) {
         result = candidate;
       }
     }

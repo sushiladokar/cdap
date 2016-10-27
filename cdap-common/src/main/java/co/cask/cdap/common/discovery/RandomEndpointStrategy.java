@@ -26,7 +26,6 @@ import java.util.concurrent.ThreadLocalRandom;
  * Randomly picks endpoint from the list of available endpoints.
  */
 public final class RandomEndpointStrategy extends AbstractEndpointStrategy {
-  private Random random = ThreadLocalRandom.current();
   /**
    * Constructs a random endpoint strategy with the given {@link ServiceDiscovered}.
    */
@@ -42,7 +41,7 @@ public final class RandomEndpointStrategy extends AbstractEndpointStrategy {
     int count = 0;
     while (itor.hasNext()) {
       Discoverable next = itor.next();
-      if (random.nextInt(++count) == 0) {
+      if (ThreadLocalRandom.current().nextInt(++count) == 0) {
         result = next;
       }
     }
