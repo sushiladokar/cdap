@@ -26,6 +26,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Randomly picks endpoint from the list of available endpoints.
  */
 public final class RandomEndpointStrategy extends AbstractEndpointStrategy {
+
   /**
    * Constructs a random endpoint strategy with the given {@link ServiceDiscovered}.
    */

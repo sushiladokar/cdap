@@ -109,7 +109,7 @@ public class UserServiceEndpointStrategy extends AbstractEndpointStrategy {
       int weight = fetchWeight(version, routeConfig);
       wSum += weight;
       // randomWeight is a random number [0, wSum) with wSum possible values
-      double randomWeight = ThreadLocalRandom.current().nextInt(wSum) * sign;
+      int randomWeight = ThreadLocalRandom.current().nextInt(wSum) * sign;
       // pick the current candidate with probability weight/wSum
       if (randomWeight < weight) {
         result = candidate;
