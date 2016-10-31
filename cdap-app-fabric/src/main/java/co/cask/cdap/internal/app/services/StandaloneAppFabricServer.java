@@ -22,6 +22,7 @@ import co.cask.cdap.app.runtime.ProgramRuntimeService;
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.namespace.NamespaceAdmin;
+import co.cask.cdap.common.conf.SConfiguration;
 import co.cask.cdap.data.stream.StreamCoordinatorClient;
 import co.cask.cdap.internal.app.runtime.artifact.SystemArtifactLoader;
 import co.cask.cdap.internal.app.runtime.flow.FlowUtils;
@@ -51,6 +52,7 @@ public class StandaloneAppFabricServer extends AppFabricServer {
    */
   @Inject
   public StandaloneAppFabricServer(CConfiguration configuration,
+                                   SConfiguration sConf,
                                    DiscoveryService discoveryService,
                                    SchedulerService schedulerService,
                                    NotificationService notificationService,
@@ -69,7 +71,7 @@ public class StandaloneAppFabricServer extends AppFabricServer {
                                    PluginService pluginService,
                                    PrivilegesFetcherProxyService privilegesFetcherProxyService,
                                    RouteStore routeStore) {
-    super(configuration, discoveryService, schedulerService, notificationService, hostname, handlers,
+    super(configuration, sConf, discoveryService, schedulerService, notificationService, hostname, handlers,
           metricsCollectionService, programRuntimeService, applicationLifecycleService,
           programLifecycleService, streamCoordinatorClient, servicesNames, handlerHookNames, namespaceAdmin,
           systemArtifactLoader, pluginService, privilegesFetcherProxyService, routeStore);
