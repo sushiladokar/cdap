@@ -136,7 +136,7 @@ public class AppFabricServer extends AbstractIdleService {
     this.privilegesFetcherProxyService = privilegesFetcherProxyService;
     this.routeStore = routeStore;
     this.defaultNamespaceEnsurer = new DefaultNamespaceEnsurer(namespaceAdmin);
-    this.sslEnabled = cConf.getBoolean(Constants.Security.Ssl.ENABLED);
+    this.sslEnabled = cConf.getBoolean(Constants.Security.Ssl.SSL_INTERNAL_ENABLED);
     if (sslEnabled) {
       this.serverPort = cConf.getInt(Constants.AppFabric.SERVER_SSL_PORT);
       KeyStore ks = GeneratedCertKeyStores.getSSLKeyStore(sConf);
