@@ -433,6 +433,24 @@ public class RouterPathTest {
     assertRouting("/v3/namespaces/default/previews/preview123/metrics", RouterPathLookup.PREVIEW_HTTP);
   }
 
+  @Test
+  public void testServiceProviderStatsPaths() {
+    String serviceProviderPath = "/v3/system/////serviceproviders";
+    HttpRequest httpRequest = new DefaultHttpRequest(VERSION, new HttpMethod("GET"), serviceProviderPath);
+    RouteDestination result = pathLookup.getRoutingService(FALLBACKSERVICE, serviceProviderPath, httpRequest);
+    Assert.assertEquals(RouterPathLookup.APP_FABRIC_HTTP, result);
+
+    serviceProviderPath = "/v3/system/////serviceproviders/stats";
+    httpRequest = new DefaultHttpRequest(VERSION, new HttpMethod("GET"), serviceProviderPath);
+    result = pathLookup.getRoutingService(FALLBACKSERVICE, serviceProviderPath, httpRequest);
+    Assert.assertEquals(RouterPathLookup.APP_FABRIC_HTTP, result);
+
+    serviceProviderPath = "/v3/system/////serviceproviders///////";
+    httpRequest = new DefaultHttpRequest(VERSION, new HttpMethod("POST"), serviceProviderPath);
+    result = pathLookup.getRoutingService(FALLBACKSERVICE, serviceProviderPath, httpRequest);
+    Assert.assertEquals(RouterPathLookup.APP_FABRIC_HTTP, result);
+  }
+
   private void assertRouting(String path, RouteDestination destination) {
     for (HttpMethod method : ImmutableList.of(HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE)) {
       HttpRequest httpRequest = new DefaultHttpRequest(VERSION, method, path);
