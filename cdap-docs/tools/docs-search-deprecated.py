@@ -42,14 +42,9 @@ def parse_options():
     """
 
     parser = OptionParser(
-        usage="%prog [options]",
-        description="Searches for deprecated items in documentation ('cdap-docs') and examples ('cdap-examples')")
-
-    parser.add_option(
-        "-r", "--release",
-        dest="release",
-        help="The release to be checked, such as '3.6.0'; default is 'current'",
-        default='current')
+        usage="%prog [release]",
+        description="Searches for deprecated items in documentation ('cdap-docs') and examples ('cdap-examples'). "
+            "If no release is specified, 'current' is used instead.")
 
     (options, args) = parser.parse_args()
 
@@ -61,20 +56,29 @@ def load_deprecated_items(release):
     print "Loading deprecated info from '%s'" % deprecated_url
     page = urllib2.urlopen(deprecated_url).read()
     soup = BeautifulSoup(page, 'html.parser')
-    soup.prettify()
+#     soup.prettify()
     deprecated_items = dict()
     longest = 0
     i = 0
     for a in soup.select('a[href^="co/cask/cdap"]'):
         line = None
-        if a.string:
-            line = a.string
-        elif a.contents[0]:
-            line = a.contents[0]
+        if a.contents:
+            line = str(a.contents[0]).strip()
+            if line.startswith('<code>'):
+                line = None
+            else:
+                try:
+#                     line = str(''.join(a.contents)).strip()
+                    line = ''
+                    for t in a.contents:
+                        line += str(t).strip()
+                    print "%3d: %s" % (i, line)
+                except Exception, e:
+                    print "%3d: %s" % (i, a.contents)
+                    raise e
         else:
-            print "%s: Could not find text in: %s" % (i, a)            
+            print "%s: Could not find text in: %s" % (i, a)           
         if line:
-            line = str(line).strip()
             paren = line.find('(')
             if paren != -1:
                 line = line[:paren]
@@ -97,6 +101,8 @@ def search_docs(release):
     print "Deprecated: %s" % len(deprecated_items)
     if not deprecated_items:
         return
+
+    return
     
     deprecated_keys = deprecated_items.keys()
     deprecated_keys.sort()
@@ -137,7 +143,12 @@ def main():
     """
     options, args, parser = parse_options()
     
-    search_docs(options.release)
+    if args:
+        release = args[0]
+    else:
+        release = 'current'
+    
+    search_docs(release)
         
 if __name__ == '__main__':
     main()
