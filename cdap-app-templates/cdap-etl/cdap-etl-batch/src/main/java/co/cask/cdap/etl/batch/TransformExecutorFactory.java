@@ -24,10 +24,14 @@ import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transformation;
 import co.cask.cdap.etl.api.batch.BatchRuntimeContext;
 import co.cask.cdap.etl.common.DefaultStageMetrics;
+import co.cask.cdap.etl.common.ETLEmitter;
+import co.cask.cdap.etl.common.ETLMapReduceTransformDetail;
+import co.cask.cdap.etl.common.ETLMapReduceTransformExecutor;
 import co.cask.cdap.etl.common.PipelinePhase;
+import co.cask.cdap.etl.common.SinkEmitter;
 import co.cask.cdap.etl.common.TrackedTransform;
-import co.cask.cdap.etl.common.TransformDetail;
 import co.cask.cdap.etl.common.TransformExecutor;
+import co.cask.cdap.etl.planner.Dag;
 import co.cask.cdap.etl.planner.StageInfo;
 import com.google.common.collect.Sets;
 import org.apache.hadoop.mapreduce.JobContext;
@@ -81,23 +85,49 @@ public abstract class TransformExecutorFactory<T> {
    * @throws InstantiationException if there was an error instantiating a plugin
    * @throws Exception              if there was an error initializing a plugin
    */
-  public TransformExecutor<T> create(PipelinePhase pipeline) throws Exception {
-    Map<String, TransformDetail> transformations = new HashMap<>();
+  public ETLMapReduceTransformExecutor<T> create(PipelinePhase pipeline) throws Exception {
+    Map<String, ETLMapReduceTransformDetail> transformations = new HashMap<>();
+    Set<String> sources = pipeline.getSources();
+    Set<String> sinks = pipeline.getSinks();
+
+
     for (String pluginType : pipeline.getPluginTypes()) {
       for (StageInfo stageInfo : pipeline.getStagesOfType(pluginType)) {
         String stageName = stageInfo.getName();
         outputSchema = stageInfo.getOutputSchema();
         perStageInputSchemas.put(stageName, stageInfo.getInputSchemas());
         // Wrap each transformation so that each stage is emitting stageName along with the record
-        transformations.put(stageName,
-                            new TransformDetail(getTransformation(pluginType, stageName),
-                                                pipeline.getStageOutputs(stageName)));
+        for (String sink : sinks) {
+          transformations.put(sink,
+                              new ETLMapReduceTransformDetail(getTransformation(pluginType, stageName),
+                                                              new SinkEmitter<>()));
+        }
+
+
+
+
+        for (String source : sources) {
+          Set<String> stageOutputs = pipeline.getStageOutputs(source);
+
+
+        }
+
+        if (sinks.contains(stageName)) {
+          transformations.put(stageName,
+                              new ETLMapReduceTransformDetail(getTransformation(pluginType, stageName),
+                                                              new SinkEmitter<>()));
+        } else {
+
+          transformations.put(stageName,
+                              new ETLMapReduceTransformDetail(getTransformation(pluginType, stageName),
+                                                              new ETLEmitter<>()));
+        }
       }
     }
 
     // sourceStageName will be null in reducers, so need to handle that case
     Set<String> startingPoints = (sourceStageName == null) ? pipeline.getSources() : Sets.newHashSet(sourceStageName);
-    return new TransformExecutor<>(transformations, startingPoints);
+    return new ETLMapReduceTransformExecutor<>(transformations, startingPoints);
   }
 
   /**

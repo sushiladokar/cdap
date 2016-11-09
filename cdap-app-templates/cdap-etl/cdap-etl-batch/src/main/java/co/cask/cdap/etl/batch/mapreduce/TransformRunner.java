@@ -20,7 +20,6 @@ import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.api.mapreduce.MapReduceTaskContext;
 import co.cask.cdap.api.metrics.Metrics;
-import co.cask.cdap.etl.api.InvalidEntry;
 import co.cask.cdap.etl.api.Transform;
 import co.cask.cdap.etl.api.batch.BatchAggregator;
 import co.cask.cdap.etl.api.batch.BatchJoiner;
@@ -28,11 +27,9 @@ import co.cask.cdap.etl.batch.BatchPhaseSpec;
 import co.cask.cdap.etl.batch.PipelinePluginInstantiator;
 import co.cask.cdap.etl.batch.TransformExecutorFactory;
 import co.cask.cdap.etl.common.Constants;
-import co.cask.cdap.etl.common.Destroyables;
+import co.cask.cdap.etl.common.ETLMapReduceTransformExecutor;
 import co.cask.cdap.etl.common.PipelinePhase;
 import co.cask.cdap.etl.common.SetMultimapCodec;
-import co.cask.cdap.etl.common.TransformExecutor;
-import co.cask.cdap.etl.common.TransformResponse;
 import co.cask.cdap.etl.planner.StageInfo;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import com.google.common.base.Preconditions;
@@ -46,7 +43,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -68,7 +64,7 @@ public class TransformRunner<KEY, VALUE> {
     .create();
   private final Set<String> transformsWithoutErrorDataset;
   private final Map<String, ErrorOutputWriter<Object, Object>> transformErrorSinkMap;
-  private final TransformExecutor<KeyValue<KEY, VALUE>> transformExecutor;
+  private final ETLMapReduceTransformExecutor<KeyValue<KEY, VALUE>> transformExecutor;
   private final OutputWriter<Object, Object> outputWriter;
 
   public TransformRunner(MapReduceTaskContext<Object, Object> context,
@@ -162,35 +158,34 @@ public class TransformRunner<KEY, VALUE> {
 
   public void transform(KEY key, VALUE value) throws Exception {
     KeyValue<KEY, VALUE> input = new KeyValue<>(key, value);
-    TransformResponse transformResponse = transformExecutor.runOneIteration(input);
-    for (Map.Entry<String, Collection<Object>> transformedEntry : transformResponse.getSinksResults().entrySet()) {
-      for (Object transformedRecord : transformedEntry.getValue()) {
-        outputWriter.write(transformedEntry.getKey(), (KeyValue<Object, Object>) transformedRecord);
-      }
-    }
+    transformExecutor.runOneIteration(input);
+//    for (Map.Entry<String, Collection<Object>> transformedEntry : transformResponse.getSinksResults().entrySet()) {
+//      for (Object transformedRecord : transformedEntry.getValue()) {
+//        outputWriter.write(transformedEntry.getKey(), (KeyValue<Object, Object>) transformedRecord);
+//      }
+//    }
 
-    for (Map.Entry<String, Collection<InvalidEntry<Object>>> errorEntry :
-      transformResponse.getMapTransformIdToErrorEmitter().entrySet()) {
-
-      // this check is used to make sure we don't log the same warning multiple times,
-      // but only log it once.
-      if (transformsWithoutErrorDataset.contains(errorEntry.getKey())) {
-        continue;
-      }
-      if (!errorEntry.getValue().isEmpty()) {
-        if (!transformErrorSinkMap.containsKey(errorEntry.getKey())) {
-          LOG.warn("Transform : {} has error records, but does not have a error dataset configured.",
-                   errorEntry.getKey());
-          transformsWithoutErrorDataset.add(errorEntry.getKey());
-        } else {
-          transformErrorSinkMap.get(errorEntry.getKey()).write(errorEntry.getValue());
-        }
-      }
-    }
-    transformExecutor.resetEmitter();
+//    for (Map.Entry<String, Collection<InvalidEntry<Object>>> errorEntry :
+//      transformResponse.getMapTransformIdToErrorEmitter().entrySet()) {
+//
+//      // this check is used to make sure we don't log the same warning multiple times,
+//      // but only log it once.
+//      if (transformsWithoutErrorDataset.contains(errorEntry.getKey())) {
+//        continue;
+//      }
+//      if (!errorEntry.getValue().isEmpty()) {
+//        if (!transformErrorSinkMap.containsKey(errorEntry.getKey())) {
+//          LOG.warn("Transform : {} has error records, but does not have a error dataset configured.",
+//                   errorEntry.getKey());
+//          transformsWithoutErrorDataset.add(errorEntry.getKey());
+//        } else {
+//          transformErrorSinkMap.get(errorEntry.getKey()).write(errorEntry.getValue());
+//        }
+//      }
+//    }
   }
 
   public void destroy() {
-    Destroyables.destroyQuietly(transformExecutor);
+
   }
 }
