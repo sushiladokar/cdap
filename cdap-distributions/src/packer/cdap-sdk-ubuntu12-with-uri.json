@@ -49,12 +49,11 @@
       "source_ami": "ami-a488dbb3",
       "ami_groups": ["all"],
       "ami_regions": [
-        "us-east1",
-        "us-west1",
-        "us-west2"
+        "us-east-1",
+        "us-west-1",
+        "us-west-2"
       ],
       "ssh_username": "ubuntu",
-      "shutdown_behavior": "terminate",
       "name": "cdap-sdk-ami"
     }
   ],
