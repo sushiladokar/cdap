@@ -11,7 +11,6 @@ public class ETLMapReduceTransformDetail {
   private final Transformation transformation;
   private final Emitter<Object> emitter;
 
-
   public ETLMapReduceTransformDetail(Transformation transformation, Emitter<Object> emitter) {
     this.transformation = transformation;
     this.emitter = emitter;

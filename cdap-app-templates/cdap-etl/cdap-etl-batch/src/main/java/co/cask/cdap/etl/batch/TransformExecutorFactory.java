@@ -19,10 +19,12 @@ package co.cask.cdap.etl.batch;
 import co.cask.cdap.api.data.schema.Schema;
 import co.cask.cdap.api.macro.MacroEvaluator;
 import co.cask.cdap.api.metrics.Metrics;
+import co.cask.cdap.etl.api.Emitter;
 import co.cask.cdap.etl.api.StageLifecycle;
 import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transformation;
 import co.cask.cdap.etl.api.batch.BatchRuntimeContext;
+import co.cask.cdap.etl.api.batch.BatchSink;
 import co.cask.cdap.etl.common.DefaultStageMetrics;
 import co.cask.cdap.etl.common.ETLEmitter;
 import co.cask.cdap.etl.common.ETLMapReduceTransformDetail;
@@ -31,7 +33,6 @@ import co.cask.cdap.etl.common.PipelinePhase;
 import co.cask.cdap.etl.common.SinkEmitter;
 import co.cask.cdap.etl.common.TrackedTransform;
 import co.cask.cdap.etl.common.TransformExecutor;
-import co.cask.cdap.etl.planner.Dag;
 import co.cask.cdap.etl.planner.StageInfo;
 import com.google.common.collect.Sets;
 import org.apache.hadoop.mapreduce.JobContext;
@@ -90,6 +91,19 @@ public abstract class TransformExecutorFactory<T> {
     Set<String> sources = pipeline.getSources();
     Set<String> sinks = pipeline.getSinks();
 
+    for (String source : sources) {
+      Set<String> stageOutputs = pipeline.getStageOutputs(source);
+
+    }
+
+    // populate transform detail for sinks
+    for (String sink : sinks) {
+      transformations.put(sink, new ETLMapReduceTransformDetail(getTransformation(BatchSink.PLUGIN_TYPE, sink),
+                                                                new SinkEmitter<>()));
+    }
+
+    pipeline.getStageOutputs()
+
 
     for (String pluginType : pipeline.getPluginTypes()) {
       for (StageInfo stageInfo : pipeline.getStagesOfType(pluginType)) {
@@ -102,6 +116,10 @@ public abstract class TransformExecutorFactory<T> {
                               new ETLMapReduceTransformDetail(getTransformation(pluginType, stageName),
                                                               new SinkEmitter<>()));
         }
+
+        for ()
+
+
 
 
 
@@ -128,6 +146,10 @@ public abstract class TransformExecutorFactory<T> {
     // sourceStageName will be null in reducers, so need to handle that case
     Set<String> startingPoints = (sourceStageName == null) ? pipeline.getSources() : Sets.newHashSet(sourceStageName);
     return new ETLMapReduceTransformExecutor<>(transformations, startingPoints);
+  }
+
+  Map<String, Emitter<T>> getEmitters() {
+
   }
 
   /**

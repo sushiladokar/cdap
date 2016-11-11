@@ -15,6 +15,10 @@ public class ETLEmitter<T> implements Emitter<T> {
     this.nextTransformations = nextTransformations;
   }
 
+  public void addNextTransformation(String key, ETLMapReduceTransformDetail value) {
+    nextTransformations.put(key, value);
+  }
+
   @Override
   public void emit(T value) {
     for (Map.Entry<String, ETLMapReduceTransformDetail> entry : nextTransformations.entrySet()) {
