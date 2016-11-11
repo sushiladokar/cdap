@@ -1040,4 +1040,11 @@ public final class Constants {
     public static final String ENABLED = "audit.enabled";
     public static final String KAFKA_TOPIC = "audit.kafka.topic";
   }
+
+  /**
+   * Constants for operational stats fetcher
+   */
+  public static final class OperationalStats {
+    public static final String EXTENSIONS_DIR = "operational.stats.extensions.dir";
+  }
 }
