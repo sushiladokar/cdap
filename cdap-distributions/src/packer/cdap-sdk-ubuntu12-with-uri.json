@@ -50,6 +50,7 @@
       "ami_groups": ["all"],
       "ami_regions": [
         "us-east-1",
+        "us-east-2",
         "us-west-1",
         "us-west-2"
       ],
@@ -60,6 +61,7 @@
   "provisioners": [
     {
       "type": "shell",
+      "execute_command": "sudo bash -c '{{ .Vars }} {{ .Path }}'",
       "scripts": [
         "scripts/apt-setup.sh",
         "scripts/cookbook-dir.sh"
@@ -81,6 +83,7 @@
     },
     {
       "type": "shell",
+      "execute_command": "sudo bash -c '{{ .Vars }} {{ .Path }}'",
       "scripts": "scripts/cookbook-setup.sh"
     },
     {
@@ -125,8 +128,7 @@
     {
       "type": "file",
       "source": "files/cdap-sdk.zip",
-      "destination": "/tmp/cdap-sdk.zip",
-      "only": ["cdap-sdk-vm"]
+      "destination": "/tmp/cdap-sdk.zip"
     },
     {
       "type": "file",
@@ -138,7 +140,6 @@
       "type": "chef-solo",
       "remote_cookbook_paths": "/var/chef/cookbooks",
       "run_list": "recipe[cdap::sdk]",
-      "prevent_sudo": true,
       "skip_install": true,
       "json": {
         "cdap": {
@@ -165,6 +166,7 @@
     },
     {
       "type": "shell",
+      "execute_command": "sudo bash -c '{{ .Vars }} {{ .Path }}'",
       "scripts": [
         "scripts/remove-chef.sh",
         "scripts/sdk-cleanup.sh",
