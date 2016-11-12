@@ -19,6 +19,7 @@ import { ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reac
 import T from 'i18n-react';
 import classnames from 'classnames';
 import NamespaceStore from 'services/NamespaceStore';
+import Rx from 'rx';
 
 require('./JumpButton.less');
 
@@ -34,12 +35,26 @@ export default class JumpButton extends Component {
     };
 
     this.getJumpActions();
+    this.documentClickEventListener$ = Rx.Observable.fromEvent(document, 'click')
+      .subscribe(() => {
+        if (this.state.dropdownOpen) {
+          this.setState({
+            dropdownOpen: !this.state.dropdownOpen
+          });
+        }
+      });
   }
 
-  toggle() {
+  componentWillUnmount() {
+    this.documentClickEventListener$.dispose();
+  }
+
+  toggle(event) {
     this.setState({
       dropdownOpen: !this.state.dropdownOpen
     });
+    event.stopPropagation();
+    event.nativeEvent.stopImmediatePropagation();
   }
 
   viewInTrackerLink() {
@@ -108,15 +123,15 @@ export default class JumpButton extends Component {
 
   render() {
     return (
-      <ButtonDropdown isOpen={this.state.dropdownOpen} toggle={this.toggle}>
-        <DropdownToggle className="jump-button">
+      <ButtonDropdown isOpen={this.state.dropdownOpen} toggle={() => {}}>
+        <DropdownToggle className="jump-button" onClick={this.toggle}>
           <span>{T.translate('features.JumpButton.buttonLabel')}</span>
           <span className={classnames('fa pull-right', {
             'fa-chevron-down': !this.state.dropdownOpen,
             'fa-chevron-up': this.state.dropdownOpen
           })} />
         </DropdownToggle>
-        <DropdownMenu className="jump-button-dropdown">
+        <DropdownMenu className="jump-button-dropdown" right>
           {this.getJumpActions()}
         </DropdownMenu>
       </ButtonDropdown>
