@@ -81,7 +81,8 @@ public class ProgramRuntimeProviderLoader {
   /**
    * Creates a cache for caching {@link ProgramRuntimeProvider} for different {@link ProgramType}.
    */
-  private ExtensionLoader<ProgramType, ProgramRuntimeProvider> createProgramRunnerExtensionLoader(CConfiguration cConf) {
+  private ExtensionLoader<ProgramType, ProgramRuntimeProvider> createProgramRunnerExtensionLoader(
+    CConfiguration cConf) {
     // List of extension directories to scan
     String extDirs = cConf.get(Constants.AppFabric.RUNTIME_EXT_DIR, "");
     return new ExtensionLoader<>(extDirs, new Predicate<ImmutablePair<ProgramType, ProgramRuntimeProvider>>() {
