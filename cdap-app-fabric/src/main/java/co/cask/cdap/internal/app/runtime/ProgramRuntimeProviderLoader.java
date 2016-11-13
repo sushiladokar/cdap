@@ -95,6 +95,6 @@ public class ProgramRuntimeProviderLoader {
           provider.getClass().getAnnotation(ProgramRuntimeProvider.SupportedProgramType.class);
         return !(supportedType == null || !ImmutableSet.copyOf(supportedType.value()).contains(programType));
       }
-    }, NOT_SUPPORTED_PROVIDER);
+    }, ProgramRuntimeProvider.class, NOT_SUPPORTED_PROVIDER);
   }
 }

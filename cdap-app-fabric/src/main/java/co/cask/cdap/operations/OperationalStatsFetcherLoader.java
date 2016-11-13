@@ -104,7 +104,7 @@ public class OperationalStatsFetcherLoader {
     // List of extension directories to scan
     String extDirs = cConf.get(Constants.OperationalStats.EXTENSIONS_DIR, "");
     return new ExtensionLoader<>(extDirs, Predicates.<ImmutablePair<String, OperationalStatsFetcher>>alwaysTrue(),
-                                 NOT_SUPPORTED_FETCHER);
+                                 OperationalStatsFetcher.class, NOT_SUPPORTED_FETCHER);
   }
 
   /**

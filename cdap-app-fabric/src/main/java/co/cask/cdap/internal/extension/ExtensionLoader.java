@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.ParameterizedType;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -60,9 +59,8 @@ public class ExtensionLoader<CACHE_KEY, CACHE_VALUE> {
 
   @SuppressWarnings("unchecked")
   public ExtensionLoader(String extDirs, Predicate<ImmutablePair<CACHE_KEY, CACHE_VALUE>> extensionFilter,
-                         CACHE_VALUE defaultExtension) {
-    this.cacheValueClass = (Class<CACHE_VALUE>) ((ParameterizedType) getClass().getGenericSuperclass())
-      .getActualTypeArguments()[0];
+                         Class<CACHE_VALUE> cacheValueClass, CACHE_VALUE defaultExtension) {
+    this.cacheValueClass = cacheValueClass;
     this.systemExtensionLoader = ServiceLoader.load(cacheValueClass);
     this.extensionFilter = extensionFilter;
     this.extensionsCache = createExtensionsCache(extDirs);
