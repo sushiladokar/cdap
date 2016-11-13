@@ -24,7 +24,8 @@ import com.google.common.base.Predicates;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import java.util.Map;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ServiceLoader;
 
 /**
@@ -37,7 +38,57 @@ public class OperationalStatsFetcherLoader {
   // provider supported for a given program type
   private static final OperationalStatsFetcher NOT_SUPPORTED_FETCHER = new OperationalStatsFetcher() {
     @Override
-    public Map<String, Object> getStats() {
+    public String getVersion() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public URL getWebURL() throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public URL getLogsURL() throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public NodeStats getNodeStats() throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public StorageStats getStorageStats() throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public MemoryStats getMemoryStats() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ComputeStats getComputeStats() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AppStats getAppStats() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public QueueStats getQueueStats() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public EntityStats getEntityStats() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ProcessStats getProcessStats() throws IOException {
       throw new UnsupportedOperationException();
     }
   };
@@ -54,5 +105,12 @@ public class OperationalStatsFetcherLoader {
     String extDirs = cConf.get(Constants.OperationalStats.EXTENSIONS_DIR, "");
     return new ExtensionLoader<>(extDirs, Predicates.<ImmutablePair<String, OperationalStatsFetcher>>alwaysTrue(),
                                  NOT_SUPPORTED_FETCHER);
+  }
+
+  /**
+   * Returns an {@link OperationalStatsFetcher} for the specified service.
+   */
+  public OperationalStatsFetcher get(String serviceName) {
+    return operationalStatsFetcherLoader.getExtension(serviceName);
   }
 }
