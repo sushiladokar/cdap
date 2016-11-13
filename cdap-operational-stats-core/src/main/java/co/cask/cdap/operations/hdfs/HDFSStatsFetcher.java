@@ -78,6 +78,8 @@ public class HDFSStatsFetcher implements OperationalStatsFetcher {
   @Override
   public URL getLogsURL() throws IOException {
     URL webURL = getWebURL();
+    // should never be null for HDFS, since we know that a web url exists for HDFS
+    Preconditions.checkNotNull(webURL);
     return new URL(webURL.getProtocol(), webURL.getHost(), webURL.getPort(), "logs");
   }
 
