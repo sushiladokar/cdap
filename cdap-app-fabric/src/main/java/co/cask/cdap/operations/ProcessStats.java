@@ -28,7 +28,7 @@ public class ProcessStats {
     this.services = services;
   }
 
-  public Map<String, Integer> getServices() {
+  public Map<String, Integer> getProcesses() {
     return services;
   }
 }

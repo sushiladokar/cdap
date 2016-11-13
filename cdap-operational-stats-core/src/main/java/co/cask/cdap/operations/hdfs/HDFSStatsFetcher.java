@@ -155,8 +155,8 @@ public class HDFSStatsFetcher implements OperationalStatsFetcher {
 
   private List<String> getNameNodes() {
     List<String> namenodes = new ArrayList<>();
-    if (HAUtil.isHAEnabled(conf, getNameService())) {
-      return Collections.singletonList(dfs.getUri().getHost());
+    if (!HAUtil.isHAEnabled(conf, getNameService())) {
+      return Collections.singletonList(dfs.getUri().toString());
     }
     String nameService = getNameService();
     for (String nnId : DFSUtil.getNameNodeIds(conf, nameService)) {
