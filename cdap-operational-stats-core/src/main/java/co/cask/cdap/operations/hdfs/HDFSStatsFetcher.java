@@ -20,8 +20,10 @@ import co.cask.cdap.operations.NodeStats;
 import co.cask.cdap.operations.OperationalStatsFetcher;
 import co.cask.cdap.operations.ProcessStats;
 import co.cask.cdap.operations.StorageStats;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FsStatus;
@@ -34,15 +36,19 @@ import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.HAUtil;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.hadoop.hdfs.tools.NNHAServiceTarget;
+import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.util.VersionInfo;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * {@link OperationalStatsFetcher} for HDFS.
@@ -60,6 +66,12 @@ public class HDFSStatsFetcher implements OperationalStatsFetcher {
     Preconditions.checkArgument(fs instanceof DistributedFileSystem, "Expected Distributed Filesystem to be the " +
       "configured file system, but found %s", fs.getClass().getName());
     this.dfs = (DistributedFileSystem) fs;
+  }
+
+  @VisibleForTesting
+  HDFSStatsFetcher(DistributedFileSystem dfs) {
+    this.conf = dfs.getConf();
+    this.dfs = dfs;
   }
 
   @Override
@@ -80,7 +92,7 @@ public class HDFSStatsFetcher implements OperationalStatsFetcher {
     URL webURL = getWebURL();
     // should never be null for HDFS, since we know that a web url exists for HDFS
     Preconditions.checkNotNull(webURL);
-    return new URL(webURL.getProtocol(), webURL.getHost(), webURL.getPort(), "logs");
+    return new URL(webURL.getProtocol(), webURL.getHost(), webURL.getPort(), "/logs");
   }
 
   @Override
@@ -153,11 +165,17 @@ public class HDFSStatsFetcher implements OperationalStatsFetcher {
     return namenodes;
   }
 
+  @Nullable
   private String getNameService() {
-    String nameService = DFSUtil.getOnlyNameServiceIdOrNull(conf);
-    Preconditions.checkArgument(nameService != null, "Found multiple nameservices configured in HDFS. " +
-      "CDAP currently does not support HDFS Federation.");
-    return nameService;
+    Collection<String> nameservices = conf.getTrimmedStringCollection(DFSConfigKeys.DFS_NAMESERVICES);
+    if (nameservices.isEmpty()) {
+      return null;
+    }
+    if (1 == nameservices.size()) {
+      return Iterables.getOnlyElement(nameservices);
+    }
+    throw new IllegalStateException("Found multiple nameservices configured in HDFS. CDAP currently does not support " +
+                                      "HDFS Federation.");
   }
 
   private URL getHAWebURL() throws IOException {
@@ -184,9 +202,9 @@ public class HDFSStatsFetcher implements OperationalStatsFetcher {
     String namenodeWebAddress = httpsEnabled ?
       conf.get(DFSConfigKeys.DFS_NAMENODE_HTTP_ADDRESS_KEY, DFSConfigKeys.DFS_NAMENODE_HTTP_ADDRESS_DEFAULT) :
       conf.get(DFSConfigKeys.DFS_NAMENODE_HTTPS_ADDRESS_KEY, DFSConfigKeys.DFS_NAMENODE_HTTPS_ADDRESS_DEFAULT);
+    InetSocketAddress socketAddress = NetUtils.createSocketAddr(namenodeWebAddress);
+    int namenodeWebPort = socketAddress.getPort();
     String protocol = httpsEnabled ? "https" : "http";
-    URI namenodeWebUri = URI.create(namenodeWebAddress);
-    int namenodeWebPort = namenodeWebUri.getPort();
     return new URL(protocol, host, namenodeWebPort, "");
   }
 }
