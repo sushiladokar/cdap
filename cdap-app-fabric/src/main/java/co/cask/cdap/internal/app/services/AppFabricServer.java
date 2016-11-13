@@ -16,6 +16,7 @@
 
 package co.cask.cdap.internal.app.services;
 
+import co.cask.cdap.api.common.Bytes;
 import co.cask.cdap.api.metrics.MetricsCollectionService;
 import co.cask.cdap.app.runtime.ProgramRuntimeService;
 import co.cask.cdap.common.conf.CConfiguration;
@@ -36,7 +37,7 @@ import co.cask.cdap.notifications.service.NotificationService;
 import co.cask.cdap.proto.id.NamespaceId;
 import co.cask.cdap.route.store.RouteStore;
 import co.cask.cdap.security.authorization.PrivilegesFetcherProxyService;
-import co.cask.cdap.security.tools.GeneratedCertKeyStores;
+import co.cask.cdap.security.tools.KeyStores;
 import co.cask.cdap.security.tools.SSLHandlerFactory;
 import co.cask.http.HandlerHook;
 import co.cask.http.HttpHandler;
@@ -166,8 +167,8 @@ public class AppFabricServer extends AbstractIdleService {
     int serverPort;
     if (sslEnabled) {
       serverPort = cConf.getInt(Constants.AppFabric.SERVER_SSL_PORT);
-      String password = sConf.get(Constants.Security.SSL.KEYSTORE_PASSWORD, generateRandomPassword());
-      KeyStore ks = GeneratedCertKeyStores.getSSLKeyStore(sConf, password);
+      String password = generateRandomPassword();
+      KeyStore ks = KeyStores.generatedCertKeyStore(sConf, password);
 
       this.sslHandlerFactory = new SSLHandlerFactory(ks, password);
     } else {
@@ -227,7 +228,7 @@ public class AppFabricServer extends AbstractIdleService {
         LOG.info("AppFabric HTTP Service announced at {}", socketAddress);
 
         // Tag the discoverable's payload to mark it as supporting ssl.
-        byte[] sslPayload = sslEnabled ? Constants.Security.SSL_DISCOVERABLE_KEY.getBytes() : new byte[]{};
+        byte[] sslPayload = sslEnabled ? Constants.Security.SSL_DISCOVERABLE_KEY.getBytes() : Bytes.EMPTY_BYTE_ARRAY;
         // TODO accept a list of services, and start them here
         // When it is running, register it with service discovery
         for (final String serviceName : servicesNames) {
@@ -277,12 +278,9 @@ public class AppFabricServer extends AbstractIdleService {
   }
 
   private static String generateRandomPassword() {
-    /*
-    This works by choosing 130 bits from a cryptographically secure random bit generator, and encoding them in base-32.
-    128 bits is considered to be cryptographically strong, but each digit in a base 32 number can encode 5 bits,
-    so 128 is rounded up to the next multiple of 5.
-    Base 21 system uses alphabets A-Z and numbers 2-7
-     */
+    // This works by choosing 130 bits from a cryptographically secure random bit generator, and encoding them in
+    // base-32. 128 bits is considered to be cryptographically strong, but each digit in a base 32 number can encode
+    // 5 bits, so 128 is rounded up to the next multiple of 5. Base 32 system uses alphabets A-Z and numbers 2-7
     return new BigInteger(130, new SecureRandom()).toString(32);
   }
 }

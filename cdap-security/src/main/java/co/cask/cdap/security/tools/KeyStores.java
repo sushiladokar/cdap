@@ -50,7 +50,7 @@ import java.util.Date;
  * Utility class with methods for generating a X.509 self signed certificate
  * and creating a Java key store with a self signed certificate.
  */
-public final class GeneratedCertKeyStores {
+public final class KeyStores {
   private static final String KEY_PAIR_ALGORITHM = "RSA";
   private static final String SECURE_RANDOM_ALGORITHM = "SHA1PRNG";
   private static final String SECURE_RANDOM_PROVIDER = "SUN";
@@ -74,41 +74,32 @@ public final class GeneratedCertKeyStores {
   private static final int VALIDITY = 999;
 
   /* private constructor */
-  private GeneratedCertKeyStores() {}
+  private KeyStores() {}
 
   /**
    * Create a Java key store with a stored self-signed certificate.
    * @return Java keystore which has a self signed X.509 certificate
    */
-  public static KeyStore getSSLKeyStore(SConfiguration sConf, String password) {
-    KeyStore keyStore;
+  public static KeyStore generatedCertKeyStore(SConfiguration sConf, String password) {
     try {
-      String keyPairAlgorithm = sConf.get(Constants.Security.SSL.KEY_PAIR_ALGORITHM,
-                                          KEY_PAIR_ALGORITHM);
-      KeyPairGenerator keyGen = KeyPairGenerator.getInstance(keyPairAlgorithm);
-      String randomAlgorithm = sConf.get(Constants.Security.SSL.SECURE_RANDOM_ALGORITHM,
-                                         SECURE_RANDOM_ALGORITHM);
-      String randomProvider = sConf.get(Constants.Security.SSL.SECURE_RANDOM_PROVIDER,
-                                        SECURE_RANDOM_PROVIDER);
-      SecureRandom random = SecureRandom.getInstance(randomAlgorithm, randomProvider);
+      KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_PAIR_ALGORITHM);
+      SecureRandom random = SecureRandom.getInstance(SECURE_RANDOM_ALGORITHM, SECURE_RANDOM_PROVIDER);
       keyGen.initialize(KEY_SIZE, random);
       // generate a key pair
       KeyPair pair = keyGen.generateKeyPair();
       int validity = sConf.getInt(Constants.Security.SSL.CERT_VALIDITY, VALIDITY);
-      String distinguishedName = sConf.get(Constants.Security.SSL.CERT_DISTINGUISHED_NAME, DISTINGUISHED_NAME);
-      String signatureAlgo = sConf.get(Constants.Security.SSL.SIGNATURE_ALGORITHM, SIGNATURE_ALGORITHM);
 
-      X509Certificate cert = getCertificate(distinguishedName, pair, validity, signatureAlgo);
+      X509Certificate cert = getCertificate(DISTINGUISHED_NAME, pair, validity, SIGNATURE_ALGORITHM);
 
-      keyStore = KeyStore.getInstance(sConf.get(Constants.Security.SSL.KEYSTORE_TYPE, SSL_KEYSTORE_TYPE));
+      KeyStore keyStore = KeyStore.getInstance(SSL_KEYSTORE_TYPE);
       keyStore.load(null, password.toCharArray());
       keyStore.setKeyEntry(CERT_ALIAS, pair.getPrivate(), password.toCharArray(),
                            new java.security.cert.Certificate[]{cert});
+      return keyStore;
     } catch (Exception e) {
       throw new RuntimeException("SSL is enabled but a key store file could not be created. A keystore is required " +
                                    "for SSL to be used.", e);
     }
-    return keyStore;
   }
 
   /**
@@ -120,7 +111,8 @@ public final class GeneratedCertKeyStores {
    * @param algorithm Name of the signature algorithm used.
    * @return A X.509 certificate
    */
-  private static X509Certificate getCertificate(String dn, KeyPair pair, int days, String algorithm) {
+  private static X509Certificate getCertificate(String dn, KeyPair pair, int days, String algorithm) throws IOException,
+    CertificateException, NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     // Calculate the validity interval of the certificate
     Date from = new Date();
     Date to = DateUtils.addDays(from, days);
@@ -128,28 +120,22 @@ public final class GeneratedCertKeyStores {
     // Generate a random number to use as the serial number for the certificate
     BigInteger sn = new BigInteger(64, new SecureRandom());
     // Create the name of the owner based on the provided distinguished name
-    try {
-      X500Name owner = new X500Name(dn);
-      // Create an info objects with the provided information, which will be used to create the certificate
-      X509CertInfo info = new X509CertInfo();
-      info.set(X509CertInfo.VALIDITY, interval);
-      info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(sn));
-      // This certificate will be self signed, hence the subject and the issuer are same.
-      info.set(X509CertInfo.SUBJECT, new CertificateSubjectName(owner));
-      info.set(X509CertInfo.ISSUER, new CertificateIssuerName(owner));
-      info.set(X509CertInfo.KEY, new CertificateX509Key(pair.getPublic()));
-      info.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3));
-      AlgorithmId algo = new AlgorithmId(AlgorithmId.md5WithRSAEncryption_oid);
-      info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algo));
-      // Create the certificate and sign it with the private key
-      X509CertImpl cert = new X509CertImpl(info);
-      PrivateKey privateKey = pair.getPrivate();
-      cert.sign(privateKey, algorithm);
-      return cert;
-    } catch (CertificateException | IOException | NoSuchAlgorithmException | SignatureException
-      | InvalidKeyException | NoSuchProviderException e) {
-      throw new RuntimeException("SSL is enabled but an certificate could not be generated. A certificate is required" +
-                                   " for SSL to be used.", e);
-    }
+    X500Name owner = new X500Name(dn);
+    // Create an info objects with the provided information, which will be used to create the certificate
+    X509CertInfo info = new X509CertInfo();
+    info.set(X509CertInfo.VALIDITY, interval);
+    info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(sn));
+    // This certificate will be self signed, hence the subject and the issuer are same.
+    info.set(X509CertInfo.SUBJECT, new CertificateSubjectName(owner));
+    info.set(X509CertInfo.ISSUER, new CertificateIssuerName(owner));
+    info.set(X509CertInfo.KEY, new CertificateX509Key(pair.getPublic()));
+    info.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3));
+    AlgorithmId algo = new AlgorithmId(AlgorithmId.md5WithRSAEncryption_oid);
+    info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algo));
+    // Create the certificate and sign it with the private key
+    X509CertImpl cert = new X509CertImpl(info);
+    PrivateKey privateKey = pair.getPrivate();
+    cert.sign(privateKey, algorithm);
+    return cert;
   }
 }

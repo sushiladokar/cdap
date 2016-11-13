@@ -35,7 +35,7 @@ import javax.net.ssl.SSLEngine;
  * A class that encapsulates SSL Certificate Information
  */
 public class SSLHandlerFactory {
-  private static final String protocol = "TLS";
+  private static final String PROTOCOL = "TLS";
   private static final String ALGORITHM = "SunX509";
   private final SSLContext serverContext;
 
@@ -62,7 +62,7 @@ public class SSLHandlerFactory {
       kmf.init(ks, (certificatePassword != null) ? certificatePassword.toCharArray() : keyStorePassword.toCharArray());
 
       // Initialize the SSLContext to work with our key managers.
-      serverContext = SSLContext.getInstance(protocol);
+      serverContext = SSLContext.getInstance(PROTOCOL);
       serverContext.init(kmf.getKeyManagers(), null, null);
     } catch (Exception e) {
       throw new IllegalArgumentException("Failed to initialize the server-side SSLContext", e);
@@ -72,7 +72,7 @@ public class SSLHandlerFactory {
   public SSLHandlerFactory(KeyStore keyStore, String password) {
     try {
       KeyManagerFactory kmf = KeyManagerFactory.getInstance(ALGORITHM);
-      serverContext = SSLContext.getInstance(protocol);
+      serverContext = SSLContext.getInstance(PROTOCOL);
       kmf.init(keyStore, password.toCharArray());
       serverContext.init(kmf.getKeyManagers(), null, null);
     } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | UnrecoverableKeyException e) {

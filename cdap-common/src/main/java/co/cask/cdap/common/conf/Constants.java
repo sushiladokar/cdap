@@ -756,18 +756,8 @@ public final class Constants {
       public static final String KEYSTORE_PASSWORD = "ssl.internal.keystore.password";
       /** Type for the java keystore. e.g. JCEKS. */
       public static final String KEYSTORE_TYPE = "ssl.internal.keystore.type";
-      /** Algorithm used to generate key pair used in SSL certificate generation. */
-      public static final String KEY_PAIR_ALGORITHM = "ssl.internal.key.pair.algorithm";
-      /** Algorithm used for generating the random number used for SSL certificate. */
-      public static final String SECURE_RANDOM_ALGORITHM = "ssl.internal.random.algorithm";
-      /** Provider for the secure random number generator. */
-      public static final String SECURE_RANDOM_PROVIDER = "ssl.internal.random.provider";
-      /** Validity of the generated SSL certificate. */
+      /** Validity of the self generated certificate in days */
       public static final String CERT_VALIDITY = "ssl.internal.cert.validity";
-      /** Distinguished name to be used while generating the SSL certificate */
-      public static final String CERT_DISTINGUISHED_NAME = "ssl.internal.cert.distinguished.name";
-      /** Algorithm used for self signing the generated certificate. */
-      public static final String SIGNATURE_ALGORITHM = "ssl.internal.cert.sign.algorithm";
     }
 
     /**

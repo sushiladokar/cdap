@@ -24,7 +24,7 @@ import org.junit.Test;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
-public class GeneratedCertKeyStoresTest {
+public class KeyStoresTest {
   private static final String CERT_ALIAS = "cert";
   private static final String DISTINGUISHED_NAME = "CN=CDAP, L=Palo Alto, C=US";
   private static final String SIGNATURE_ALGORITHM = "MD5withRSA";
@@ -36,7 +36,7 @@ public class GeneratedCertKeyStoresTest {
   public void testGetSSLKeyStore() throws Exception {
     SConfiguration sConf = SConfiguration.create();
     sConf.set(Constants.Security.SSL.KEYSTORE_PASSWORD, SSL_PASSWORD);
-    KeyStore ks = GeneratedCertKeyStores.getSSLKeyStore(sConf, SSL_PASSWORD);
+    KeyStore ks = KeyStores.generatedCertKeyStore(sConf, SSL_PASSWORD);
     Assert.assertEquals(SSL_KEYSTORE_TYPE, ks.getType());
     Assert.assertEquals(CERT_ALIAS, ks.aliases().nextElement());
     Assert.assertEquals(1, ks.size());

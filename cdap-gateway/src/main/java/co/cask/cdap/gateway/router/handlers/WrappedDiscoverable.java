@@ -48,7 +48,8 @@ public class WrappedDiscoverable {
   public int hashCode() {
     return Objects.hashCode(discoverable.getName(),
                             discoverable.getSocketAddress().getHostName(),
-                            discoverable.getSocketAddress().getPort());
+                            discoverable.getSocketAddress().getPort(),
+                            discoverable.getPayload());
   }
 
   @Override
@@ -62,6 +63,7 @@ public class WrappedDiscoverable {
     WrappedDiscoverable that = (WrappedDiscoverable) object;
     return Objects.equal(discoverable.getName(), that.getName()) &&
            Objects.equal(discoverable.getSocketAddress().getHostName(), that.getSocketAddress().getHostName()) &&
-           Objects.equal(discoverable.getSocketAddress().getPort(), that.getSocketAddress().getPort());
+           Objects.equal(discoverable.getSocketAddress().getPort(), that.getSocketAddress().getPort()) &&
+           Objects.equal(discoverable.getPayload(), that.getPayload());
   }
 }
