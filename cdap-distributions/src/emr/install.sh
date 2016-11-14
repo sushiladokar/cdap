@@ -95,7 +95,7 @@ __create_tmpdir() { mkdir -p ${__tmpdir}; };
 # Begin CDAP Prep/Install
 
 # Install git
-yum install --yes git || die "Failed to install git"
+yum install -y git || die "Failed to install git"
 
 # Install chef
 curl -L https://www.chef.io/chef/install.sh | sudo bash -s -- -v ${CHEF_VERSION} || die "Failed to install chef"
@@ -158,7 +158,8 @@ rm -f /opt/cdap/kafka/lib/log4j.log4j-1.2.14.jar
 # Start CDAP Services
 for i in /etc/init.d/cdap-*; do
   __svc=$(basename ${i})
-  chkconfig ${__svc}) on || die "Failed to enable ${__svc}"
+  chkconfig ${__svc} on || die "Failed to enable ${__svc}"
+  service ${i} start
 done
 
 __cleanup_tmpdir
