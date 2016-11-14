@@ -140,13 +140,13 @@ __ipaddr=$(ifconfig eth0 | grep addr: | cut -d: -f2 | head -n 1 | awk '{print $1
 
 # Create chef json configuration
 sed \
-  -e "s/{{ZK_QUORUM}}/${__zk_quorum}/" \
-  -e "s/{{CDAP_VERSION}}/${CDAP_VERSION}/" \
-  -e "s/{{CDAP_YUM_REPO_URL}}/${CDAP_YUM_REPO_URL}/" \
-  -e "s/{{EXPLORE_ENABLED}}/${EXPLORE_ENABLED}/" \
-  -e "s/{{HIVE_CLASSPATH}}/${__hive_classpath}/" \
-  -e "s/{{HIVE_EXEC_ENGINE}}/${__hive_exec_engine}/" \
-  -e "s/{{ROUTER_IP_ADDRESS}}/${__ipaddr}/" \
+  -e "s#{{ZK_QUORUM}}#${__zk_quorum}#" \
+  -e "s#{{CDAP_VERSION}}#${CDAP_VERSION}#" \
+  -e "s#{{CDAP_YUM_REPO_URL}}#${CDAP_YUM_REPO_URL}#" \
+  -e "s#{{EXPLORE_ENABLED}}#${EXPLORE_ENABLED}#" \
+  -e "s#{{HIVE_CLASSPATH}}#${__hive_classpath}#" \
+  -e "s#{{HIVE_EXEC_ENGINE}}#${__hive_exec_engine}#" \
+  -e "s#{{ROUTER_IP_ADDRESS}}#${__ipaddr}#" \
   ${__cdap_site_template} > ${__tmpdir}/generated-conf.json
 
 # Install/Configure CDAP
