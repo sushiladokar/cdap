@@ -150,7 +150,7 @@ sed \
   ${__cdap_site_template} > ${__tmpdir}/generated-conf.json
 
 # Install/Configure CDAP
-chef-solo -o 'recipe[cdap::fullstack]' -j ${__tmpdir}/generated-conf.json
+chef-solo -o 'recipe[cdap::fullstack]' -j ${__tmpdir}/generated-conf.json || die 'Failed during Chef run'
 
 # Temporary Hack to workaround CDAP-4089
 rm -f /opt/cdap/kafka/lib/log4j.log4j-1.2.14.jar
