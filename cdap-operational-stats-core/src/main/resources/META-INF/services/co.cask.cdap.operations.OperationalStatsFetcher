@@ -14,3 +14,4 @@
 # the License.
 #
 
+co.cask.cdap.operations.hdfs.HDFSStatsFetcher
