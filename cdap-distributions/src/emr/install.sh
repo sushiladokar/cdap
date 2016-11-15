@@ -128,9 +128,9 @@ __zk_quorum=$(cdap_get_conf 'hbase.zookeeper.quorum' '/etc/hbase/conf/hbase-site
 
 # Derive hive classpath using same method as Hive
 __hive_classpath=/etc/hive/conf:
-__hive_classpath+='$(ls -1 ${HIVE_HOME}/lib/*.jar | tr "\n" ":")'
-__hive_classpath+='$(if [[ -d ${HIVE_AUX_JARS_PATH} ]]; then ls -1 ${HIVE_AUX_JARS_PATH}/*.jar | tr "\n" ":"; else echo ${HIVE_AUX_JARS_PATH} | tr "," ":"; fi)'
-__hive_classpath+='$(ls -1 ${HIVE_HOME}/auxlib/*.jar 2>/dev/null | tr "\n" ":")'
+__hive_classpath+='$(ls -1 ${HIVE_HOME}/lib/*.jar | tr \'\n\' \':\')'
+__hive_classpath+='$(if [[ -d ${HIVE_AUX_JARS_PATH} ]]; then ls -1 ${HIVE_AUX_JARS_PATH}/*.jar | tr \'\n\' \':\'; else echo ${HIVE_AUX_JARS_PATH} | tr \',\' \':\'; fi)'
+__hive_classpath+='$(ls -1 ${HIVE_HOME}/auxlib/*.jar 2>/dev/null | tr \'\n\' \':\')'
 
 # Read hive exec engine
 __hive_exec_engine=$(cdap_get_conf 'hive.execution.engine' '/etc/hive/conf/hive-site.xml' 'mr') || die "Cannot get Hive Exec Engine"
