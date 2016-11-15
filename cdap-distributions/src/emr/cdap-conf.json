@@ -16,7 +16,7 @@
       "stream.container.memory.mb": "1536",
       "twill.java.reserved.memory.mb": "350",
       "router.server.address": "{{ROUTER_IP_ADDRESS}}",
-      "zookeeper.quorum": "{{ZK_QUORUM}}:2181/cdap"
+      "zookeeper.quorum": "{{ZK_QUORUM}}:2181/${root.namespace}"
     },
     "cdap_env": {
       "explore_enabled": "true",
