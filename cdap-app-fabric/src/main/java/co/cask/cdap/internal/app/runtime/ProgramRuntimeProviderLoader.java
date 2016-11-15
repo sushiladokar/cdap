@@ -20,11 +20,10 @@ import co.cask.cdap.app.runtime.ProgramRunner;
 import co.cask.cdap.app.runtime.ProgramRuntimeProvider;
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
-import co.cask.cdap.common.utils.ImmutablePair;
 import co.cask.cdap.internal.extension.ExtensionLoader;
 import co.cask.cdap.proto.ProgramType;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicate;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -33,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ServiceLoader;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
@@ -85,15 +85,13 @@ public class ProgramRuntimeProviderLoader {
     CConfiguration cConf) {
     // List of extension directories to scan
     String extDirs = cConf.get(Constants.AppFabric.RUNTIME_EXT_DIR, "");
-    return new ExtensionLoader<>(extDirs, new Predicate<ImmutablePair<ProgramType, ProgramRuntimeProvider>>() {
+    return new ExtensionLoader<>(extDirs, new Function<ProgramRuntimeProvider, Set<ProgramType>>() {
       @Override
-      public boolean apply(ImmutablePair<ProgramType, ProgramRuntimeProvider> keyValuePair) {
-        ProgramType programType = keyValuePair.getFirst();
-        ProgramRuntimeProvider provider = keyValuePair.getSecond();
+      public Set<ProgramType> apply(ProgramRuntimeProvider provider) {
         // See if the provide supports the required program type
         ProgramRuntimeProvider.SupportedProgramType supportedType =
           provider.getClass().getAnnotation(ProgramRuntimeProvider.SupportedProgramType.class);
-        return !(supportedType == null || !ImmutableSet.copyOf(supportedType.value()).contains(programType));
+        return supportedType == null ? ImmutableSet.<ProgramType>of() : ImmutableSet.copyOf(supportedType.value());
       }
     }, ProgramRuntimeProvider.class, NOT_SUPPORTED_PROVIDER);
   }

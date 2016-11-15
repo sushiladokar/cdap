@@ -18,14 +18,17 @@ package co.cask.cdap.operations;
 
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
-import co.cask.cdap.common.utils.ImmutablePair;
 import co.cask.cdap.internal.extension.ExtensionLoader;
-import com.google.common.base.Predicate;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
 
@@ -35,8 +38,10 @@ import java.util.Set;
  */
 @Singleton
 public class OperationalStatsFetcherLoader {
-  // The ProgramRunnerProvider serves as a tagging instance to indicate there is not
-  // provider supported for a given program type
+  private static final Logger LOG = LoggerFactory.getLogger(OperationalStatsFetcherLoader.class);
+
+  // This OperationalStatsFetcher serves as a tagging instance to indicate there is not fetcher supported for a given
+  // service
   private static final OperationalStatsFetcher NOT_SUPPORTED_FETCHER = new OperationalStatsFetcher() {
     @Override
     public String getVersion() {
@@ -99,21 +104,21 @@ public class OperationalStatsFetcherLoader {
   @Inject
   OperationalStatsFetcherLoader(CConfiguration cConf) {
     this.operationalStatsFetcherLoader = createOperationalStatsFetcherLoader(cConf);
+    this.operationalStatsFetcherLoader.preload();
   }
 
   private ExtensionLoader<String, OperationalStatsFetcher> createOperationalStatsFetcherLoader(CConfiguration cConf) {
     // List of extension directories to scan
     String extDirs = cConf.get(Constants.OperationalStats.EXTENSIONS_DIR, "");
+    LOG.debug("Creating extension loader for operational stats from extension directories: {}.", extDirs);
     return new ExtensionLoader<>(
-      extDirs, new Predicate<ImmutablePair<String, OperationalStatsFetcher>>() {
+      extDirs, new Function<OperationalStatsFetcher, Set<String>>() {
         @Override
-        public boolean apply(ImmutablePair<String, OperationalStatsFetcher> input) {
-          String serviceName = input.getFirst();
-          OperationalStatsFetcher operationalStatsFetcher = input.getSecond();
-          // See if it is a fetcher for the given service
-          OperationalStatsFetcher.ServiceName supportedService =
+        public Set<String> apply(OperationalStatsFetcher operationalStatsFetcher) {
+          // Get the supported service for the given fetcher
+          OperationalStatsFetcher.ServiceName service =
             operationalStatsFetcher.getClass().getAnnotation(OperationalStatsFetcher.ServiceName.class);
-          return supportedService.value().equals(serviceName);
+          return ImmutableSet.of(service.value());
         }
       },
       OperationalStatsFetcher.class, NOT_SUPPORTED_FETCHER);
@@ -129,7 +134,7 @@ public class OperationalStatsFetcherLoader {
   /**
    * Returns a list of all {@link OperationalStatsFetcher} extensions.
    */
-  public Set<String> list() {
+  public Map<String, OperationalStatsFetcher> getAll() {
     return operationalStatsFetcherLoader.listExtensions();
   }
 }

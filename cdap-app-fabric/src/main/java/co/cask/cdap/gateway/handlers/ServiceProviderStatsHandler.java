@@ -32,6 +32,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -92,8 +93,8 @@ public class ServiceProviderStatsHandler extends AbstractHttpHandler {
   @Path("/")
   public void getServiceProviders(HttpRequest request, HttpResponder responder) throws IOException {
     Set<Info> operationalStatsExtensions = new HashSet<>();
-    for (String extension : operationalExtensionsLoader.list()) {
-      OperationalStatsFetcher fetcher = operationalExtensionsLoader.get(extension);
+    for (Map.Entry<String, OperationalStatsFetcher> extension : operationalExtensionsLoader.getAll().entrySet()) {
+      OperationalStatsFetcher fetcher = extension.getValue();
       URL webUrl = fetcher.getWebURL();
       URL logsUrl = fetcher.getLogsURL();
       operationalStatsExtensions.add(new Info(fetcher.getVersion(), webUrl == null ? null : webUrl.toString(),
@@ -108,11 +109,7 @@ public class ServiceProviderStatsHandler extends AbstractHttpHandler {
   public void getServiceProviderStats(HttpRequest request, HttpResponder responder,
                                       @PathParam("service-provider") String serviceProvider)
     throws NotFoundException, IOException {
-    Set<String> serviceProviders = operationalExtensionsLoader.list();
-    if (!serviceProviders.contains(serviceProvider)) {
-      throw new NotFoundException(String.format("Service provider %s not found. Available service providers: %s",
-                                                serviceProvider, serviceProviders));
-    }
+    // TODO: Recognize not found and throw 404
     OperationalStatsFetcher fetcher = operationalExtensionsLoader.get(serviceProvider);
     responder.sendJson(HttpResponseStatus.OK, new Stats(fetcher.getAppStats(), fetcher.getComputeStats(),
                                                         fetcher.getEntityStats(), fetcher.getMemoryStats(),
