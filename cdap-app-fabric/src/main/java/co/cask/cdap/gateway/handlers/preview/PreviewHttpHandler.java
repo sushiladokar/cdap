@@ -107,11 +107,11 @@ public class PreviewHttpHandler extends AbstractAppFabricHttpHandler {
   @Inject
   PreviewHttpHandler(CConfiguration cConf, Configuration hConf, DiscoveryService discoveryService,
                      @Named(DataSetsModules.BASE_DATASET_FRAMEWORK) DatasetFramework datasetFramework,
-                     PreferencesStore preferencesStore, SecureStore secureStore, TransactionManager transactionManager,
-                     ArtifactRepository artifactRepository, ArtifactStore artifactStore,
-                     AuthorizerInstantiator authorizerInstantiator, StreamAdmin streamAdmin,
-                     StreamCoordinatorClient streamCoordinatorClient, PrivilegesManager privilegesManager,
-                     AuthorizationEnforcer authorizationEnforcer) {
+                     PreferencesStore preferencesStore, SecureStore secureStore,
+                     TransactionManager transactionManager, ArtifactRepository artifactRepository,
+                     ArtifactStore artifactStore, AuthorizerInstantiator authorizerInstantiator,
+                     StreamAdmin streamAdmin, StreamCoordinatorClient streamCoordinatorClient,
+                     PrivilegesManager privilegesManager, AuthorizationEnforcer authorizationEnforcer) {
     this.cConf = cConf;
     this.hConf = hConf;
     this.datasetFramework = datasetFramework;
