@@ -72,8 +72,8 @@ public class HDFSStatsFetcherTest {
     Assert.assertEquals(0, storageStats.getCorruptBlocks());
     Assert.assertEquals(0, storageStats.getMissingBlocks());
     Assert.assertEquals(0, storageStats.getUnderreplicatedBlocks());
-    Assert.assertTrue(storageStats.getTotalMB() > storageStats.getAvailableMB());
-    Assert.assertTrue(storageStats.getAvailableMB() > 0);
+    Assert.assertTrue(storageStats.getTotalBytes() > storageStats.getAvailableBytes());
+    Assert.assertTrue(storageStats.getAvailableBytes() > 0);
     NodeStats nodeStats = fetcher.getNodeStats();
     Assert.assertEquals(2, nodeStats.getTotal());
     Assert.assertEquals(2, nodeStats.getHealthy());

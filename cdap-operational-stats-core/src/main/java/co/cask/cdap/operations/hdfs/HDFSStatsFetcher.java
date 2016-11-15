@@ -113,9 +113,9 @@ public class HDFSStatsFetcher implements OperationalStatsFetcher {
   @Override
   public StorageStats getStorageStats() throws IOException {
     FsStatus status = dfs.getStatus();
-    long capacity = status.getCapacity() / (1024 * 1024);
-    long used = status.getUsed() / (1024 * 1024);
-    long remaining = status.getRemaining() / (1024 * 1024);
+    long capacity = status.getCapacity();
+    long used = status.getUsed();
+    long remaining = status.getRemaining();
     long missingBlocks = dfs.getMissingBlocksCount();
     long corruptBlocks = dfs.getCorruptBlocksCount();
     long underReplicatedBlocks = dfs.getUnderReplicatedBlocksCount();
@@ -200,8 +200,8 @@ public class HDFSStatsFetcher implements OperationalStatsFetcher {
     String host = rpcURI.getHost();
     boolean httpsEnabled = conf.getBoolean(DFSConfigKeys.DFS_HTTPS_ENABLE_KEY, DFSConfigKeys.DFS_HTTPS_ENABLE_DEFAULT);
     String namenodeWebAddress = httpsEnabled ?
-      conf.get(DFSConfigKeys.DFS_NAMENODE_HTTP_ADDRESS_KEY, DFSConfigKeys.DFS_NAMENODE_HTTP_ADDRESS_DEFAULT) :
-      conf.get(DFSConfigKeys.DFS_NAMENODE_HTTPS_ADDRESS_KEY, DFSConfigKeys.DFS_NAMENODE_HTTPS_ADDRESS_DEFAULT);
+      conf.get(DFSConfigKeys.DFS_NAMENODE_HTTPS_ADDRESS_KEY, DFSConfigKeys.DFS_NAMENODE_HTTPS_ADDRESS_DEFAULT) :
+      conf.get(DFSConfigKeys.DFS_NAMENODE_HTTP_ADDRESS_KEY, DFSConfigKeys.DFS_NAMENODE_HTTP_ADDRESS_DEFAULT);
     InetSocketAddress socketAddress = NetUtils.createSocketAddr(namenodeWebAddress);
     int namenodeWebPort = socketAddress.getPort();
     String protocol = httpsEnabled ? "https" : "http";

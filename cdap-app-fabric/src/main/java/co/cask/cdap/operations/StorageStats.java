@@ -20,33 +20,33 @@ package co.cask.cdap.operations;
  * Represents storage statistics.
  */
 public class StorageStats {
-  private final long totalMB;
-  private final long usedMB;
-  private final long availableMB;
+  private final long totalBytes;
+  private final long usedBytes;
+  private final long availableBytes;
   private final long missingBlocks;
   private final long corruptBlocks;
   private final long underreplicatedBlocks;
 
-  public StorageStats(long totalMB, long usedMB, long availableMB, long missingBlocks, long corruptBlocks,
+  public StorageStats(long totalBytes, long usedBytes, long availableBytes, long missingBlocks, long corruptBlocks,
                       long underreplicatedBlocks) {
-    this.totalMB = totalMB;
-    this.usedMB = usedMB;
-    this.availableMB = availableMB;
+    this.totalBytes = totalBytes;
+    this.usedBytes = usedBytes;
+    this.availableBytes = availableBytes;
     this.missingBlocks = missingBlocks;
     this.corruptBlocks = corruptBlocks;
     this.underreplicatedBlocks = underreplicatedBlocks;
   }
 
-  public long getTotalMB() {
-    return totalMB;
+  public long getTotalBytes() {
+    return totalBytes;
   }
 
-  public long getUsedMB() {
-    return usedMB;
+  public long getUsedBytes() {
+    return usedBytes;
   }
 
-  public long getAvailableMB() {
-    return availableMB;
+  public long getAvailableBytes() {
+    return availableBytes;
   }
 
   public long getMissingBlocks() {

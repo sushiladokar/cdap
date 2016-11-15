@@ -63,7 +63,7 @@ public interface OperationalStatsFetcher {
   NodeStats getNodeStats() throws IOException;
 
   /**
-   * Returns the storage stats of the service. These include the total, used and available sizes in MB. In
+   * Returns the storage stats of the service. These include the total, used and available sizes in bytes. In
    * addition, it can also serve other stats like block statistics. Returns {@code null} if no such stats are available.
    */
   @Nullable
