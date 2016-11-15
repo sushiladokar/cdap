@@ -163,7 +163,9 @@ public class ExtensionLoader<CACHE_KEY, CACHE_VALUE> {
         try {
           extensions.putAll(findExtensions(serviceLoaderCache.getUnchecked(moduleDir)));
           for (Map.Entry<CACHE_KEY, CACHE_VALUE> entry : findExtensions(systemExtensionLoader).entrySet()) {
-            extensions.putIfAbsent(entry.getKey(), entry.getValue());
+            if (!extensions.containsKey(entry.getKey())) {
+              extensions.put(entry.getKey(), entry.getValue());
+            }
           }
         } catch (Exception e) {
           LOG.warn("Exception raised when loading an extension from {}. Extension ignored.", moduleDir, e);
