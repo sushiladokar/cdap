@@ -36,5 +36,8 @@
     },
     "skip_prerequisites": "true",
     "version": "{{CDAP_VERSION}}"
+  },
+  "hadoop": {
+    "distribution": "bigtop"
   }
 }
