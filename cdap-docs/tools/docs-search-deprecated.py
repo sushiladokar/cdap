@@ -132,6 +132,7 @@ def search_docs(release):
     # Walk directories
     docs = '..'
     examples = '../../cdap-examples'
+    # TODO: add other example and tutorial repos, test if they are there, and check them
     
     for dir in (docs, examples):
         dir_path = os.path.abspath(os.path.join(script_dir, dir))
