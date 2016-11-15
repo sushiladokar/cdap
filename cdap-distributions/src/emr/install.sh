@@ -159,7 +159,7 @@ rm -f /opt/cdap/kafka/lib/log4j.log4j-1.2.14.jar
 for i in /etc/init.d/cdap-*; do
   __svc=$(basename ${i})
   chkconfig ${__svc} on || die "Failed to enable ${__svc}"
-  service ${i} start
+  service ${__svc} start
 done
 
 __cleanup_tmpdir
