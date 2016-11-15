@@ -95,7 +95,7 @@ __create_tmpdir() { mkdir -p ${__tmpdir}; };
 # Begin CDAP Prep/Install
 
 # Install git
-yum install -y git || die "Failed to install git"
+sudo yum install -y git || die "Failed to install git"
 
 # Install chef
 curl -L https://www.chef.io/chef/install.sh | sudo bash -s -- -v ${CHEF_VERSION} || die "Failed to install chef"
@@ -110,16 +110,16 @@ if [ -n "${CDAP_TAG}" ]; then
 fi
 
 # Setup cookbook repo
-test -d /var/chef/cookbooks && rm -rf /var/chef/cookbooks
-${__packerdir}/cookbook-dir.sh || die "Failed to setup cookbook dir"
+test -d /var/chef/cookbooks && sudo rm -rf /var/chef/cookbooks
+sudo ${__packerdir}/cookbook-dir.sh || die "Failed to setup cookbook dir"
 
 # Install cookbooks via knife
-${__packerdir}/cookbook-setup.sh || die "Failed to install cookbooks"
+sudo ${__packerdir}/cookbook-setup.sh || die "Failed to install cookbooks"
 
 # CDAP cli install, ensures package dependencies are present
 # We must specify the cdap version
 echo "{\"cdap\": {\"version\": \"${CDAP_VERSION}\"}}" > ${__tmpdir}/cli-conf.json
-chef-solo -o 'recipe[cdap::cli]' -j ${__tmpdir}/cli-conf.json
+sudo chef-solo -o 'recipe[cdap::cli]' -j ${__tmpdir}/cli-conf.json
 
 source ${__gitdir}/cdap-common/bin/functions.sh || die "Cannot source CDAP functions script"
 
@@ -143,16 +143,16 @@ sed \
   ${__cdap_site_template} > ${__tmpdir}/generated-conf.json
 
 # Install/Configure CDAP
-chef-solo -o 'recipe[cdap::fullstack]' -j ${__tmpdir}/generated-conf.json || die 'Failed during Chef run'
+sudo chef-solo -o 'recipe[cdap::fullstack]' -j ${__tmpdir}/generated-conf.json || die 'Failed during Chef run'
 
 # Temporary Hack to workaround CDAP-4089
-rm -f /opt/cdap/kafka/lib/log4j.log4j-1.2.14.jar
+sudo rm -f /opt/cdap/kafka/lib/log4j.log4j-1.2.14.jar
 
 # Start CDAP Services
 for i in /etc/init.d/cdap-*; do
   __svc=$(basename ${i})
-  chkconfig ${__svc} on || die "Failed to enable ${__svc}"
-  service ${__svc} start || die "Failed to start ${__svc}"
+  sudo chkconfig ${__svc} on || die "Failed to enable ${__svc}"
+  sudo service ${__svc} start || die "Failed to start ${__svc}"
 done
 
 __cleanup_tmpdir
