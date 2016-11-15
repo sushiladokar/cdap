@@ -27,6 +27,7 @@ import com.google.inject.Singleton;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 /**
  * A singleton class for discovering {@link OperationalStatsFetcher} through the extension mechanism that uses
@@ -112,5 +113,12 @@ public class OperationalStatsFetcherLoader {
    */
   public OperationalStatsFetcher get(String serviceName) {
     return operationalStatsFetcherLoader.getExtension(serviceName);
+  }
+
+  /**
+   * Returns a list of all {@link OperationalStatsFetcher} extensions.
+   */
+  public Set<String> list() {
+    return operationalStatsFetcherLoader.listExtensions();
   }
 }

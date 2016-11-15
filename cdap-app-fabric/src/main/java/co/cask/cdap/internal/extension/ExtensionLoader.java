@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
@@ -69,6 +70,10 @@ public class ExtensionLoader<CACHE_KEY, CACHE_VALUE> {
 
   public CACHE_VALUE getExtension(CACHE_KEY key) {
     return extensionsCache.getUnchecked(key);
+  }
+
+  public Set<CACHE_KEY> listExtensions() {
+    return extensionsCache.asMap().keySet();
   }
 
   private LoadingCache<CACHE_KEY, CACHE_VALUE> createExtensionsCache(String extDirs) {
