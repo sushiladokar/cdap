@@ -117,29 +117,15 @@ sudo ${__packerdir}/cookbook-dir.sh || die "Failed to setup cookbook dir"
 # Install cookbooks via knife
 sudo ${__packerdir}/cookbook-setup.sh || die "Failed to install cookbooks"
 
-# CDAP cli install, ensures package dependencies are present
-# We must specify the cdap version
-echo "{\"cdap\": {\"version\": \"${CDAP_VERSION}\", \"repo\": {\"yum_repo_url\": \"${CDAP_YUM_REPO_URL}\" }}}" > ${__tmpdir}/cli-conf.json
-sudo chef-solo -o 'recipe[cdap::cli]' -j ${__tmpdir}/cli-conf.json || die "Failed to install CDAP CLI"
-
-source ${__gitdir}/cdap-common/bin/functions.sh || die "Cannot source CDAP functions script"
-
-# Read zookeeper quorum from hbase-site.xml, using sourced init script function
-__zk_quorum=$(cdap_get_conf 'hbase.zookeeper.quorum' '/etc/hbase/conf/hbase-site.xml') || die "Cannot determine zookeeper quorum"
-
-# Read hive exec engine
-__hive_exec_engine=$(cdap_get_conf 'hive.execution.engine' '/etc/hive/conf/hive-site.xml' 'mr') || die "Cannot get Hive Exec Engine"
-
 # Get IP
 __ipaddr=$(ifconfig eth0 | grep addr: | cut -d: -f2 | head -n 1 | awk '{print $1}')
 
 # Create chef json configuration
 sed \
-  -e "s#{{ZK_QUORUM}}#${__zk_quorum}#" \
+  -e "s#{{ZK_QUORUM}}#${__ipaddr}#" \
   -e "s#{{CDAP_VERSION}}#${CDAP_VERSION}#" \
   -e "s#{{CDAP_YUM_REPO_URL}}#${CDAP_YUM_REPO_URL}#" \
   -e "s#{{EXPLORE_ENABLED}}#${EXPLORE_ENABLED}#" \
-  -e "s#{{HIVE_EXEC_ENGINE}}#${__hive_exec_engine}#" \
   -e "s#{{ROUTER_IP_ADDRESS}}#${__ipaddr}#" \
   ${__cdap_site_template} > ${__tmpdir}/generated-conf.json
 
