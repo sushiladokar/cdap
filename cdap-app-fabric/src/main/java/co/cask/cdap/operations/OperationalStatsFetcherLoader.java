@@ -20,7 +20,7 @@ import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.utils.ImmutablePair;
 import co.cask.cdap.internal.extension.ExtensionLoader;
-import com.google.common.base.Predicates;
+import com.google.common.base.Predicate;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -104,8 +104,19 @@ public class OperationalStatsFetcherLoader {
   private ExtensionLoader<String, OperationalStatsFetcher> createOperationalStatsFetcherLoader(CConfiguration cConf) {
     // List of extension directories to scan
     String extDirs = cConf.get(Constants.OperationalStats.EXTENSIONS_DIR, "");
-    return new ExtensionLoader<>(extDirs, Predicates.<ImmutablePair<String, OperationalStatsFetcher>>alwaysTrue(),
-                                 OperationalStatsFetcher.class, NOT_SUPPORTED_FETCHER);
+    return new ExtensionLoader<>(
+      extDirs, new Predicate<ImmutablePair<String, OperationalStatsFetcher>>() {
+        @Override
+        public boolean apply(ImmutablePair<String, OperationalStatsFetcher> input) {
+          String serviceName = input.getFirst();
+          OperationalStatsFetcher operationalStatsFetcher = input.getSecond();
+          // See if it is a fetcher for the given service
+          OperationalStatsFetcher.ServiceName supportedService =
+            operationalStatsFetcher.getClass().getAnnotation(OperationalStatsFetcher.ServiceName.class);
+          return supportedService.value().equals(serviceName);
+        }
+      },
+      OperationalStatsFetcher.class, NOT_SUPPORTED_FETCHER);
   }
 
   /**

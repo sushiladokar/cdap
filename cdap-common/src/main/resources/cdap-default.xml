@@ -1341,6 +1341,16 @@
     </description>
   </property>
 
+  <!-- Operational Stats Configuration -->
+  <property>
+    <name>operational.stats.extensions.dir</name>
+    <value>/opt/cdap/master/ext/operations</value>
+    <description>
+      Semicolon-separated list of local directories that are scanned for
+      operational stats extensions
+    </description>
+  </property>
+
 
   <!-- Queue Configuration -->
 

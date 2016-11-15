@@ -17,6 +17,10 @@
 package co.cask.cdap.operations;
 
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.net.URL;
 import javax.annotation.Nullable;
 
@@ -28,6 +32,8 @@ public interface OperationalStatsFetcher {
   /**
    * Represents the name of the service for which an {@link OperationalStatsFetcher} fetches operational stats.
    */
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
   @interface ServiceName {
     String value();
   }
