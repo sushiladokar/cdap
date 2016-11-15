@@ -51,60 +51,56 @@ public interface OperationalStatsFetcher {
 
   /**
    * Returns the node stats of the service. These include the total number of nodes, healthy nodes and decommissioned
-   * nodes.
-   *
-   * @throws UnsupportedOperationException if node statistics are unavailable for this service
+   * nodes. Returns {@code null} if no such stats are available.
    */
+  @Nullable
   NodeStats getNodeStats() throws IOException;
 
   /**
    * Returns the storage stats of the service. These include the total, used and available sizes in MB. In
-   * addition, it can also serve other stats like block statistics.
-   *
-   * @throws UnsupportedOperationException if storage statistics are unavailable for this service
+   * addition, it can also serve other stats like block statistics. Returns {@code null} if no such stats are available.
    */
+  @Nullable
   StorageStats getStorageStats() throws IOException;
 
   /**
-   * Returns the memory stats of the service. These include the total, used and available memory in MB.
-   *
-   * @throws UnsupportedOperationException if storage statistics are unavailable for this service
+   * Returns the memory stats of the service. These include the total, used and available memory in bytes.
+   * Returns {@code null} if no such stats are available.
    */
+  @Nullable
   MemoryStats getMemoryStats();
 
   /**
    * Returns the compute stats of the service. These include the total, used and available vcores.
-   *
-   * @throws UnsupportedOperationException if compute statistics are unavailable for this service
+   * Returns {@code null} if no such stats are available.
    */
+  @Nullable
   ComputeStats getComputeStats();
 
   /**
-   * Returns the app stats of the service. These include stats about total, running, failed or killed apps.
-   *
-   * @throws UnsupportedOperationException if app statistics are unavailable for this service
+   * Returns the app stats of the service. These include stats about total, running, failed or killed apps. Returns
+   * {@code null} if no such stats are available.
    */
+  @Nullable
   AppStats getAppStats();
 
   /**
-   * Returns the queue stats of the service.
-   *
-   * @throws UnsupportedOperationException if queue statistics are unavailable for this service
+   * Returns the queue stats of the service, or {@code null} if no such stats are available..
    */
+  @Nullable
   QueueStats getQueueStats();
 
   /**
-   * Returns the entity stats of the service.
-   *
-   * @throws UnsupportedOperationException if entity statistics are unavailable for this service
+   * Returns the entity stats of the service, or {@code null} if no such stats are available..
    */
+  @Nullable
   EntityStats getEntityStats();
 
   /**
-   * Returns the service stats summarizing the processes that are part of the service.
-   *
-   * @throws UnsupportedOperationException if storage statistics are unavailable for this service
+   * Returns the process stats summarizing the processes that are part of the service, or {@code null} if no such stats
+   * are available.
    */
+  @Nullable
   ProcessStats getProcessStats() throws IOException;
 
   /**

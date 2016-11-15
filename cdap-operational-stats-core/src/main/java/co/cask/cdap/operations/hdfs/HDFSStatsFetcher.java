@@ -124,27 +124,27 @@ public class HDFSStatsFetcher implements OperationalStatsFetcher {
 
   @Override
   public MemoryStats getMemoryStats() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public ComputeStats getComputeStats() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public AppStats getAppStats() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public QueueStats getQueueStats() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public EntityStats getEntityStats() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
