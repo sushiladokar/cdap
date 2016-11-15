@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * A class to maintain a cache of extensions available in a configured extensions directory.
@@ -87,14 +88,14 @@ public class ExtensionLoader<CACHE_KEY, CACHE_VALUE> {
    * Preloads the extension cache with all the extensions from the specified extensions directory.
    */
   public void preload() {
-    extensionsCache.putAll(findExtensions());
+    extensionsCache.putAll(findExtensions(null));
   }
 
   private LoadingCache<CACHE_KEY, CACHE_VALUE> createExtensionsCache() {
     return CacheBuilder.newBuilder().build(new CacheLoader<CACHE_KEY, CACHE_VALUE>() {
       @Override
       public CACHE_VALUE load(CACHE_KEY key) throws Exception {
-        Map<CACHE_KEY, CACHE_VALUE> extensions = findExtensions();
+        Map<CACHE_KEY, CACHE_VALUE> extensions = findExtensions(key);
         // If there is none found in the ext dir, try to look it up from the CDAP system class ClassLoader.
         // This is for the unit-test case, where extensions are part of the test dependency, hence in the
         // unit-test ClassLoader.
@@ -142,9 +143,10 @@ public class ExtensionLoader<CACHE_KEY, CACHE_VALUE> {
   }
 
   /**
-   * Finds all the extensions from the given {@link ServiceLoader}.
+   * Finds the first extension from the given {@link ServiceLoader} that supports the specified key. If the key
+   * specified is {@code null}, returns all extensions from the extensions directory.
    */
-  private Map<CACHE_KEY, CACHE_VALUE> findExtensions() {
+  private Map<CACHE_KEY, CACHE_VALUE> findExtensions(@Nullable CACHE_KEY key) {
     Map<CACHE_KEY, CACHE_VALUE> extensions = new HashMap<>();
     // A LoadingCache from extension directory to ServiceLoader
     final LoadingCache<File, ServiceLoader<CACHE_VALUE>> serviceLoaderCache = createServiceLoaderCache();
@@ -161,32 +163,44 @@ public class ExtensionLoader<CACHE_KEY, CACHE_VALUE> {
         }
         // Try to find a provider that can support the given program type.
         try {
-          extensions.putAll(findExtensions(serviceLoaderCache.getUnchecked(moduleDir)));
-          for (Map.Entry<CACHE_KEY, CACHE_VALUE> entry : findExtensions(systemExtensionLoader).entrySet()) {
-            if (!extensions.containsKey(entry.getKey())) {
-              extensions.put(entry.getKey(), entry.getValue());
-            }
-          }
+          extensions.putAll(findExtensions(serviceLoaderCache.getUnchecked(moduleDir), key));
         } catch (Exception e) {
           LOG.warn("Exception raised when loading an extension from {}. Extension ignored.", moduleDir, e);
         }
+      }
+    }
+    // For unit tests, try to load the extensions from the system classloader. Only add those extensions which
+    // were not already loaded using the extension classloader.
+    for (Map.Entry<CACHE_KEY, CACHE_VALUE> entry : findExtensions(systemExtensionLoader, key).entrySet()) {
+      if (!extensions.containsKey(entry.getKey())) {
+        extensions.put(entry.getKey(), entry.getValue());
       }
     }
     return extensions;
   }
 
   /**
-   * Returns all the extensions using the specified {@link ServiceLoader}
+   * Returns the first available extension that support the specified key using the specified {@link ServiceLoader}.
+   * If the key is {@code null}, returns all the extensions in the extensions directory
    */
-  private Map<CACHE_KEY, CACHE_VALUE> findExtensions(ServiceLoader<CACHE_VALUE> serviceLoader) {
+  private Map<CACHE_KEY, CACHE_VALUE> findExtensions(ServiceLoader<CACHE_VALUE> serviceLoader, CACHE_KEY key) {
     Map<CACHE_KEY, CACHE_VALUE> extensions = new HashMap<>();
     for (CACHE_VALUE provider : serviceLoader) {
       Set<CACHE_KEY> cacheKeys = extensionToKeys.apply(provider);
       if (cacheKeys == null) {
         continue;
       }
-      for (CACHE_KEY cacheKey : cacheKeys) {
-        extensions.put(cacheKey, provider);
+      // If key is not specified, add all the supported keys of the provider
+      if (key == null) {
+        for (CACHE_KEY cacheKey : cacheKeys) {
+          extensions.put(cacheKey, provider);
+        }
+      } else {
+        // If a key is specified, and is found in the supported keys of the provider, return the provider
+        if (cacheKeys.contains(key)) {
+          extensions.put(key, provider);
+          return extensions;
+        }
       }
     }
     return extensions;
