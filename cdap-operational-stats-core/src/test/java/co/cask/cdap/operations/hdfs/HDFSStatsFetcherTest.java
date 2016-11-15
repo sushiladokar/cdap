@@ -69,47 +69,24 @@ public class HDFSStatsFetcherTest {
     Assert.assertEquals(webURL.getPort(), logsURL.getPort());
     Assert.assertEquals("/logs", logsURL.getPath());
     StorageStats storageStats = fetcher.getStorageStats();
+    Assert.assertNotNull(storageStats);
     Assert.assertEquals(0, storageStats.getCorruptBlocks());
     Assert.assertEquals(0, storageStats.getMissingBlocks());
     Assert.assertEquals(0, storageStats.getUnderreplicatedBlocks());
     Assert.assertTrue(storageStats.getTotalBytes() > storageStats.getAvailableBytes());
     Assert.assertTrue(storageStats.getAvailableBytes() > 0);
     NodeStats nodeStats = fetcher.getNodeStats();
+    Assert.assertNotNull(nodeStats);
     Assert.assertEquals(2, nodeStats.getTotal());
     Assert.assertEquals(2, nodeStats.getHealthy());
     Assert.assertEquals(0, nodeStats.getDecomissioned());
     ProcessStats processStats = fetcher.getProcessStats();
+    Assert.assertNotNull(processStats);
     Assert.assertEquals((Integer) 1, processStats.getProcesses().get("namenodes"));
     Assert.assertEquals((Integer) 2, processStats.getProcesses().get("datanodes"));
-    try {
-      fetcher.getAppStats();
-      Assert.fail();
-    } catch (UnsupportedOperationException expected) {
-      // expected
-    }
-    try {
-      fetcher.getComputeStats();
-      Assert.fail();
-    } catch (UnsupportedOperationException expected) {
-      // expected
-    }
-    try {
-      fetcher.getMemoryStats();
-      Assert.fail();
-    } catch (UnsupportedOperationException expected) {
-      // expected
-    }
-    try {
-      fetcher.getQueueStats();
-      Assert.fail();
-    } catch (UnsupportedOperationException expected) {
-      // expected
-    }
-    try {
-      fetcher.getEntityStats();
-      Assert.fail();
-    } catch (UnsupportedOperationException expected) {
-      // expected
-    }
+    Assert.assertNull(fetcher.getAppStats());
+    Assert.assertNull(fetcher.getComputeStats());
+    Assert.assertNull(fetcher.getQueueStats());
+    Assert.assertNull(fetcher.getEntityStats());
   }
 }
