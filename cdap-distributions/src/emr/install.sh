@@ -102,6 +102,7 @@ curl -L https://www.chef.io/chef/install.sh | sudo bash -s -- -v ${CHEF_VERSION}
 
 # Clone CDAP repo
 __create_tmpdir
+echo "INFO: Checking out CDAP_BRANCH ${CDAP_BRANCH}"
 git clone --depth 1 --branch ${CDAP_BRANCH} https://github.com/caskdata/cdap.git ${__gitdir}
 
 # Check out to specific tag if specified
@@ -118,8 +119,8 @@ sudo ${__packerdir}/cookbook-setup.sh || die "Failed to install cookbooks"
 
 # CDAP cli install, ensures package dependencies are present
 # We must specify the cdap version
-echo "{\"cdap\": {\"version\": \"${CDAP_VERSION}\"}}" > ${__tmpdir}/cli-conf.json
-sudo chef-solo -o 'recipe[cdap::cli]' -j ${__tmpdir}/cli-conf.json
+echo "{\"cdap\": {\"version\": \"${CDAP_VERSION}\", \"repo\": {\"yum_repo_url\": \"${CDAP_YUM_REPO_URL}\" }}}" > ${__tmpdir}/cli-conf.json
+sudo chef-solo -o 'recipe[cdap::cli]' -j ${__tmpdir}/cli-conf.json || die "Failed to install CDAP CLI"
 
 source ${__gitdir}/cdap-common/bin/functions.sh || die "Cannot source CDAP functions script"
 
