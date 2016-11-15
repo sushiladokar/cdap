@@ -126,12 +126,6 @@ source ${__gitdir}/cdap-common/bin/functions.sh || die "Cannot source CDAP funct
 # Read zookeeper quorum from hbase-site.xml, using sourced init script function
 __zk_quorum=$(cdap_get_conf 'hbase.zookeeper.quorum' '/etc/hbase/conf/hbase-site.xml') || die "Cannot determine zookeeper quorum"
 
-# Derive hive classpath using same method as Hive
-__hive_classpath=/etc/hive/conf:
-__hive_classpath+='$(ls -1 ${HIVE_HOME}/lib/*.jar | tr \'\n\' \':\')'
-__hive_classpath+='$(if [[ -d ${HIVE_AUX_JARS_PATH} ]]; then ls -1 ${HIVE_AUX_JARS_PATH}/*.jar | tr \'\n\' \':\'; else echo ${HIVE_AUX_JARS_PATH} | tr \',\' \':\'; fi)'
-__hive_classpath+='$(ls -1 ${HIVE_HOME}/auxlib/*.jar 2>/dev/null | tr \'\n\' \':\')'
-
 # Read hive exec engine
 __hive_exec_engine=$(cdap_get_conf 'hive.execution.engine' '/etc/hive/conf/hive-site.xml' 'mr') || die "Cannot get Hive Exec Engine"
 
@@ -144,7 +138,6 @@ sed \
   -e "s#{{CDAP_VERSION}}#${CDAP_VERSION}#" \
   -e "s#{{CDAP_YUM_REPO_URL}}#${CDAP_YUM_REPO_URL}#" \
   -e "s#{{EXPLORE_ENABLED}}#${EXPLORE_ENABLED}#" \
-  -e "s#{{HIVE_CLASSPATH}}#${__hive_classpath}#" \
   -e "s#{{HIVE_EXEC_ENGINE}}#${__hive_exec_engine}#" \
   -e "s#{{ROUTER_IP_ADDRESS}}#${__ipaddr}#" \
   ${__cdap_site_template} > ${__tmpdir}/generated-conf.json
@@ -159,7 +152,7 @@ rm -f /opt/cdap/kafka/lib/log4j.log4j-1.2.14.jar
 for i in /etc/init.d/cdap-*; do
   __svc=$(basename ${i})
   chkconfig ${__svc} on || die "Failed to enable ${__svc}"
-  service ${__svc} start
+  service ${__svc} start || die "Failed to start ${__svc}"
 done
 
 __cleanup_tmpdir

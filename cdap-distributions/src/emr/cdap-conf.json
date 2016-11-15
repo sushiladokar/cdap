@@ -25,7 +25,7 @@
       "hadoop_home_warn_suppress": "$(hadoop dfsadmin -safemode wait >/dev/null 2>&1; sleep 1; [[ ${UID} -eq 0 ]] && su - hdfs -c 'for d in /cdap /user/cdap; do hdfs dfs -mkdir -p ${d} ; hdfs dfs -chown cdap ${d}; done' >/dev/null 2>&1; echo true)",
       "hive_home": "/usr/lib/hive",
       "hive_conf_dir": "/etc/hive/conf",
-      "hive_classpath": "{{HIVE_CLASSPATH}}",
+      "hive_classpath": "${HIVE_CLASSPATH:-${HIVE_CONF_DIR}:$(ls -1 ${HIVE_HOME}/lib/*.jar | tr '\\n' ':')$(if [[ -r ${HIVE_CONF_DIR}/hive-env.sh ]]; then source ${HIVE_CONF_DIR}/hive-env.sh ; fi && if [[ -d ${HIVE_AUX_JARS_PATH} ]]; then ls -1 ${HIVE_AUX_JARS_PATH}/*.jar | tr '\\n' ':'; else echo ${HIVE_AUX_JARS_PATH} | tr ',' ':'; fi)$(ls -1 ${HIVE_HOME}/auxlib/*.jar 2>/dev/null | tr '\\n' ':')}",
       "hive_exec_engine": "{{HIVE_EXEC_ENGINE}}",
       "spark_home": "/usr/lib/spark",
       "tez_home": "/usr/lib/tez",
