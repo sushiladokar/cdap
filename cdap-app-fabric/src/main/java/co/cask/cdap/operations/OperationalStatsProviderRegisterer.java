@@ -32,24 +32,28 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Set;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
+import javax.management.MXBean;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 /**
- * Created by bhooshan on 11/16/16.
+ * Class that registers {@link MXBean MXBeans} for reporting operational stats. To be registered by this class, the
+ * class that implements an {@link MXBean} should also additionally extend {@link OperationalStats}. This class loads
+ * implementations of {@link OperationalStats} using the Java {@link ServiceLoader} architecture.
  */
 public class OperationalStatsProviderRegisterer implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(OperationalStatsFetcherLoader.class);
-  private static final String JMX_DOMAIN = "cdap";
-  private static final String TYPE_KEY = "type";
-  private static final String OPERATIONS_TYPE = "operations";
-  private static final String NAME_KEY = "name";
+  public static final String JMX_DOMAIN = "co.cask.cdap.operations";
+  public static final String TYPE_KEY = "type";
+  public static final String OPERATIONS_TYPE = "operations";
+  public static final String NAME_KEY = "name";
 
   private final ExtensionLoader<String, OperationalStats> operationalStatsLoader;
 

@@ -45,7 +45,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 /**
- * Created by bhooshan on 11/15/16.
+ * {@link OperationalStats} for HDFS.
  */
 public class HDFSStats extends OperationalStats implements HDFSStatsMXBean {
   private final Configuration conf;
