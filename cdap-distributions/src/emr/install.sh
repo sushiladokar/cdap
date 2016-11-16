@@ -122,7 +122,6 @@ __ipaddr=$(ifconfig eth0 | grep addr: | cut -d: -f2 | head -n 1 | awk '{print $1
 
 # Create chef json configuration
 sed \
-  -e "s#{{ZK_QUORUM}}#${__ipaddr}#" \
   -e "s#{{CDAP_VERSION}}#${CDAP_VERSION}#" \
   -e "s#{{CDAP_YUM_REPO_URL}}#${CDAP_YUM_REPO_URL}#" \
   -e "s#{{EXPLORE_ENABLED}}#${EXPLORE_ENABLED}#" \

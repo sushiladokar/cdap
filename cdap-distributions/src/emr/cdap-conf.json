@@ -7,8 +7,7 @@
       "kafka.log.dir": "/mnt/cdap/kafka-logs",
       "master.startup.checks.enabled": "false",
       "router.bind.port": "11015",
-      "router.server.address": "{{ROUTER_IP_ADDRESS}}",
-      "zookeeper.quorum": "{{ZK_QUORUM}}:2181/${root.namespace}"
+      "router.server.address": "{{ROUTER_IP_ADDRESS}}"
     },
     "cdap_env": {
       "explore_enabled": "true",
