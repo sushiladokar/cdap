@@ -30,7 +30,8 @@
       "hive_exec_engine": "mr",
       "spark_home": "/usr/lib/spark",
       "tez_home": "/usr/lib/tez",
-      "tez_conf_dir": "/etc/tez/conf"
+      "tez_conf_dir": "/etc/tez/conf",
+      "zookeeper_home": "$(until which zookeeper-client &>/dev/null); do sleep 5; done; echo /usr/lib/zookeeper)"
     },
     "repo": {
       "yum_repo_url": "{{CDAP_YUM_REPO_URL}}"
