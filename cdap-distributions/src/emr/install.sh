@@ -132,8 +132,11 @@ sed \
 # Install/Configure CDAP
 sudo chef-solo -o 'recipe[cdap::fullstack]' -j ${__tmpdir}/generated-conf.json || die 'Failed during Chef run'
 
-# Temporary Hack to workaround CDAP-4089
+### TODO: Temporary Hack to workaround CDAP-4089
 sudo rm -f /opt/cdap/kafka/lib/log4j.log4j-1.2.14.jar
+
+### TODO: Ensure Kafka directory is available until caskdata/cdap_cookbook#187 is merged and released
+sudo su - -c "mkdir -p /mnt/cdap/kafka-logs && chown -R cdap /mnt/cdap"
 
 # Start CDAP Services
 for i in /etc/init.d/cdap-*; do
