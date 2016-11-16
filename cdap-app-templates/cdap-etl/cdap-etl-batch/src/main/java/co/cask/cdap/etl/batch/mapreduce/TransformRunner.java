@@ -27,7 +27,6 @@ import co.cask.cdap.etl.batch.BatchPhaseSpec;
 import co.cask.cdap.etl.batch.PipelinePluginInstantiator;
 import co.cask.cdap.etl.batch.TransformExecutorFactory;
 import co.cask.cdap.etl.common.Constants;
-import co.cask.cdap.etl.common.ETLMapReduceTransformExecutor;
 import co.cask.cdap.etl.common.PipelinePhase;
 import co.cask.cdap.etl.common.SetMultimapCodec;
 import co.cask.cdap.etl.planner.StageInfo;
@@ -64,7 +63,7 @@ public class TransformRunner<KEY, VALUE> {
     .create();
   private final Set<String> transformsWithoutErrorDataset;
   private final Map<String, ErrorOutputWriter<Object, Object>> transformErrorSinkMap;
-  private final ETLMapReduceTransformExecutor<KeyValue<KEY, VALUE>> transformExecutor;
+  private final ETLTransformExecutor<KeyValue<KEY, VALUE>> transformExecutor;
   private final OutputWriter<Object, Object> outputWriter;
 
   public TransformRunner(MapReduceTaskContext<Object, Object> context,
@@ -105,7 +104,7 @@ public class TransformRunner<KEY, VALUE> {
 
     TransformExecutorFactory<KeyValue<KEY, VALUE>> transformExecutorFactory =
       new MapReduceTransformExecutorFactory<>(context, pluginInstantiator, metrics, runtimeArgs, sourceStage);
-    this.transformExecutor = transformExecutorFactory.create(phase);
+    this.transformExecutor = transformExecutorFactory.create(phase, outputWriter);
 
     // setup error dataset information
     this.transformsWithoutErrorDataset = new HashSet<>();

@@ -118,6 +118,11 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>co.cask.cdap</groupId>
+      <artifactId>cdap-etl-batch</artifactId>
+      <version>4.0.0-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>

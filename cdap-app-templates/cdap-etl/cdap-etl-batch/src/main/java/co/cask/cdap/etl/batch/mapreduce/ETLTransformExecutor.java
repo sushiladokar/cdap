@@ -1,0 +1,49 @@
+/*
+ * Copyright © 2016 Cask Data, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package co.cask.cdap.etl.batch.mapreduce;
+
+import co.cask.cdap.etl.api.Destroyable;
+import co.cask.cdap.etl.batch.ETLTransformDetail;
+
+import java.util.Map;
+import java.util.Set;
+
+/**
+ *
+ * @param <IN>
+ */
+public class ETLTransformExecutor<IN> implements Destroyable {
+  private final Set<String> startingPoints;
+  private final Map<String, ETLTransformDetail> transformDetailMap;
+
+  public ETLTransformExecutor(Map<String, ETLTransformDetail> transformDetailMap, Set<String> startingPoints) {
+    this.transformDetailMap = transformDetailMap;
+    this.startingPoints = startingPoints;
+  }
+
+  public void runOneIteration(IN input) throws Exception {
+    for (String stageName : startingPoints) {
+      ETLTransformDetail transformDetail = transformDetailMap.get(stageName);
+      transformDetail.process(input);
+    }
+  }
+
+  @Override
+  public void destroy() {
+
+  }
+}
