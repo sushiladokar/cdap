@@ -26,6 +26,7 @@
       "hive_home": "/usr/lib/hive",
       "hive_conf_dir": "/etc/hive/conf",
       "hive_classpath": "${HIVE_CLASSPATH:-${HIVE_CONF_DIR}:$(ls -1 ${HIVE_HOME}/lib/*.jar | tr '\\n' ':')$(if [[ -r ${HIVE_CONF_DIR}/hive-env.sh ]]; then source ${HIVE_CONF_DIR}/hive-env.sh ; fi && if [[ -d ${HIVE_AUX_JARS_PATH} ]]; then ls -1 ${HIVE_AUX_JARS_PATH}/*.jar | tr '\\n' ':'; else echo ${HIVE_AUX_JARS_PATH} | tr ',' ':'; fi)$(ls -1 ${HIVE_HOME}/auxlib/*.jar 2>/dev/null | tr '\\n' ':')}",
+      "hive_exec_engine": "mr",
       "spark_home": "/usr/lib/spark",
       "tez_home": "/usr/lib/tez",
       "tez_conf_dir": "/etc/tez/conf"
