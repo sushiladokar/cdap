@@ -24,6 +24,7 @@ import java.util.Map;
 
 /**
  *
+ * @param <T>
  */
 public class ETLEmitter<T> implements Emitter<T> {
   private final Map<String, ETLTransformDetail> nextStages;

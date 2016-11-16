@@ -73,7 +73,8 @@ public class ETLTransformExecutorTest {
     transformationMap.put("transform1", transform1Detail);
 
 
-    ETLTransformExecutor<Integer> executor = new ETLTransformExecutor<>(transformationMap, ImmutableSet.of("transform1"));
+    ETLTransformExecutor<Integer> executor = new ETLTransformExecutor<>(transformationMap,
+                                                                        ImmutableSet.of("transform1"));
 
     executor.runOneIteration(1);
 
