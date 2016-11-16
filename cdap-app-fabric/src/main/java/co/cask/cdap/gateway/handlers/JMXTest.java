@@ -22,32 +22,28 @@ import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.InstanceNotFoundException;
-import javax.management.IntrospectionException;
 import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanException;
 import javax.management.MBeanInfo;
-import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectInstance;
 import javax.management.ObjectName;
-import javax.management.ReflectionException;
 
 /**
  * Created by bhooshan on 11/16/16.
  */
 public class JMXTest {
 
+  /**
+   *
+   */
   public interface HDFSMXBean {
     int getThis();
     String getThat();
     StorageStats getStorage();
   }
 
+  /**
+   *
+   */
   public static class HDFS implements HDFSMXBean {
 
     @Override
@@ -66,11 +62,17 @@ public class JMXTest {
     }
   }
 
+  /**
+   *
+   */
   public interface YARNMXBean {
     long getFoo();
     boolean isBar();
   }
 
+  /**
+   *
+   */
   public static class YARN implements YARNMXBean {
 
     @Override
@@ -84,7 +86,7 @@ public class JMXTest {
     }
   }
 
-  public static void main(String [] args) throws MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanException, IntrospectionException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
+  public static void main(String [] args) throws Exception {
     MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 
     // register a few mbeans
@@ -109,7 +111,7 @@ public class JMXTest {
     System.out.println(read(mbs, "hdfs"));
   }
 
-  private static Map<String, Map<String, Object>> read(MBeanServer mbs, String serviceName) throws MalformedObjectNameException, IntrospectionException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException, MBeanException {
+  private static Map<String, Map<String, Object>> read(MBeanServer mbs, String serviceName) throws Exception {
     Hashtable<String, String> properties = new Hashtable<>();
     properties.put("name", serviceName);
     properties.put("type", "*");
