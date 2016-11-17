@@ -22,7 +22,7 @@ import co.cask.cdap.common.lang.ClassLoaders;
 import co.cask.cdap.common.lang.PropertyFieldSetter;
 import co.cask.cdap.internal.app.runtime.DataSetFieldSetter;
 import co.cask.cdap.internal.app.runtime.MetricsFieldSetter;
-import co.cask.cdap.internal.app.runtime.batch.dataset.input.InputContextFactory;
+import co.cask.cdap.internal.app.runtime.batch.dataset.input.InputContexts;
 import co.cask.cdap.internal.app.runtime.batch.dataset.input.MultiInputTaggedSplit;
 import co.cask.cdap.internal.app.runtime.batch.dataset.input.TaggedInputSplit;
 import co.cask.cdap.internal.lang.Reflections;
@@ -84,7 +84,7 @@ public class MapperWrapper extends Mapper {
     basicMapReduceContext.setHadoopContext(flushingContext);
     InputSplit inputSplit = context.getInputSplit();
     if (inputSplit instanceof MultiInputTaggedSplit) {
-      basicMapReduceContext.setInputContext(InputContextFactory.create((MultiInputTaggedSplit) inputSplit));
+      basicMapReduceContext.setInputContext(InputContexts.create((MultiInputTaggedSplit) inputSplit));
     }
 
     ClassLoader programClassLoader = classLoader.getProgramClassLoader();

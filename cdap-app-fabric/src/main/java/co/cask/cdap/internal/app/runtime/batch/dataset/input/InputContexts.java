@@ -22,9 +22,9 @@ import co.cask.cdap.data2.dataset2.lib.partitioned.PartitionedFileSetDataset;
 /**
  * Utility class that helps determine the {@link InputContext} to be used.
  */
-public class InputContextFactory {
+public final class InputContexts {
 
-  private InputContextFactory() { }
+  private InputContexts() { }
 
   /**
    * @param multiInputTaggedSplit the split given to this mapper task

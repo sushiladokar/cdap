@@ -89,6 +89,6 @@ class BasicPartitionedFileSetInputContext extends BasicInputContext implements P
 
   // compares only the paths of the URI, ignoring the scheme, host, port, etc. of the URIs.
   private boolean isParentOrEquals(URI potentialParent, URI potentialChild) {
-    return Paths.get(potentialChild.getPath()).startsWith(potentialParent.getPath());
+    return potentialChild.normalize().getPath().startsWith(potentialParent.normalize().getPath());
   }
 }
