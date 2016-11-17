@@ -29,6 +29,8 @@ CDAP_VERSION=${CDAP_VERSION:-4.0.0-1}
 CHEF_VERSION=${CHEF_VERSION:-12.10.24}
 # cdap-site.xml configuration parameters
 EXPLORE_ENABLED='true'
+# Sleep delay before starting services (in seconds)
+SERVICE_DELAY=${SERVICE_DELAY:-240}
 
 __tmpdir="/tmp/cdap_install.$$.$(date +%s)"
 __gitdir="${__tmpdir}/cdap"
@@ -144,7 +146,7 @@ sudo rm -f /opt/cdap/master/lib/org.apache.httpcomponents.httpc*.jar
 for i in /etc/init.d/cdap-*; do
   __svc=$(basename ${i})
   sudo chkconfig ${__svc} on || die "Failed to enable ${__svc}"
-  nohup sudo su - -c "sleep 120; service ${__svc} start" &
+  nohup sudo su - -c "sleep ${SERVICE_DELAY}; service ${__svc} start" &
 done
 
 __cleanup_tmpdir
