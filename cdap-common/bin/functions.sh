@@ -778,7 +778,7 @@ cdap_sdk_start() {
   local readonly __ret __pid
 
   # Default JVM_OPTS for CDAP SDK (use larger heap for /opt/cdap SDK installs)
-  if [[ ${CDAP_HOME} == /opt/cdap ]] || [[ ${CDAP_HOME} == /opt/cdap/sdk ]]; then
+  if [[ ${CDAP_HOME} == /opt/cdap ]] || [[ ${CDAP_HOME} == /opt/cdap/sdk* ]]; then
     CDAP_SDK_DEFAULT_JVM_OPTS="-Xmx3072m"
   else
     CDAP_SDK_DEFAULT_JVM_OPTS="-Xmx2048m"
