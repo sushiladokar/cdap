@@ -1030,4 +1030,13 @@ public final class Constants {
     public static final String ENABLED = "audit.enabled";
     public static final String KAFKA_TOPIC = "audit.kafka.topic";
   }
+
+  /**
+   * Constants for operational stats fetcher
+   */
+  public static final class OperationalStats {
+    public static final String EXTENSIONS_DIR = "operational.stats.extensions.dir";
+    public static final String COLLECTION_THREADS = "operational.stats.collection.threads";
+    public static final String REFRESH_INTERVAL_SECS = "operational.stats.refresh.interval.secs";
+  }
 }

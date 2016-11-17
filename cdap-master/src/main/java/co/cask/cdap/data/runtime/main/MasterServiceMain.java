@@ -67,6 +67,7 @@ import co.cask.cdap.metrics.guice.MetricsClientRuntimeModule;
 import co.cask.cdap.metrics.guice.MetricsStoreModule;
 import co.cask.cdap.notifications.feeds.guice.NotificationFeedServiceRuntimeModule;
 import co.cask.cdap.notifications.guice.NotificationServiceRuntimeModule;
+import co.cask.cdap.operations.OperationalStatsCollector;
 import co.cask.cdap.proto.id.NamespaceId;
 import co.cask.cdap.security.TokenSecureStoreUpdater;
 import co.cask.cdap.security.authorization.AuthorizationBootstrapper;
@@ -150,6 +151,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.NotCompliantMBeanException;
 
 /**
  * Driver class for starting all master services.
@@ -533,6 +537,7 @@ public class MasterServiceMain extends DaemonMain {
     private ServiceStore serviceStore;
     private TokenSecureStoreUpdater secureStoreUpdater;
     private ExploreClient exploreClient;
+    private OperationalStatsCollector operationalStatsCollector;
 
     private MasterLeaderElectionHandler(CConfiguration cConf, Configuration hConf, ZKClientService zkClient) {
       this.cConf = cConf;
@@ -553,6 +558,7 @@ public class MasterServiceMain extends DaemonMain {
       }
 
       authorizerInstantiator = injector.getInstance(AuthorizerInstantiator.class);
+      operationalStatsCollector = injector.getInstance(OperationalStatsCollector.class);
       // Authorization bootstrapping is a blocking call, because CDAP will not start successfully if it does not
       // succeed on an authorization-enabled cluster
       injector.getInstance(AuthorizationBootstrapper.class).run();
@@ -605,6 +611,11 @@ public class MasterServiceMain extends DaemonMain {
           throw new RuntimeException(String.format("Unable to start service %s: %s", service, t.getMessage()));
         }
       }
+      try {
+        operationalStatsCollector.start();
+      } catch (NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e) {
+        LOG.warn("Error while registering MBeans for reporting operational stats. ", e);
+      }
       LOG.info("CDAP Master started successfully.");
     }
 
@@ -640,6 +651,7 @@ public class MasterServiceMain extends DaemonMain {
       stopQuietly(twillRunner);
       Closeables.closeQuietly(authorizerInstantiator);
       Closeables.closeQuietly(exploreClient);
+      Closeables.closeQuietly(operationalStatsCollector);
     }
 
 
