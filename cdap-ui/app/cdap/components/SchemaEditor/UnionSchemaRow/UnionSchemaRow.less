@@ -13,8 +13,8 @@
  * License for the specific language governing permissions and limitations under
  * the License.
 */
-.array-schema-row {
-  .array-schema-field-row {
+.union-schema-row {
+  .union-schema-field-row {
     .field-name {
       width: ~"calc(100% - 80px - 75px)";
       width: ~"-moz-calc(100% - 80px - 75px)";
@@ -38,7 +38,7 @@
       margin: 0;
     }
   }
-  .array-schema-type-row {
+  .union-schema-types-row {
     .form-control {
       width: ~"calc(100% - 85px - 75px)";
       width: ~"-webkit-calc(100% - 85px - 75px)";
@@ -46,6 +46,17 @@
       padding: 0;
       height: 25px;
       margin: 0;
+      display: inline-block;
+    }
+    .field-type {
+      width: 85px;
+    }
+    .field-isnull {
+      width: 75px;
+    }
+    .field-isnull,
+    .field-type {
+      display: inline-block;
     }
   }
 }

@@ -16,6 +16,8 @@
 
 import React, {PropTypes} from 'react';
 require('./PrimitiveSchemaRow.less');
+import {SCHEMA_TYPES} from 'components/SchemaEditor/SchemaHelpers';
+import SelectWithOptions from 'components/SelectWithOptions';
 
 export default function PrimitiveSchemaRow({row}) {
   return (
@@ -24,9 +26,12 @@ export default function PrimitiveSchemaRow({row}) {
         {row.name}
       </div>
       <div className="field-type">
-        {row.displayType}
+        <SelectWithOptions
+          options={SCHEMA_TYPES.types}
+          value={row.displayType}
+        />
       </div>
-      <div className="field-isnull">
+      <div className="field-isnull text-center">
         TBD
       </div>
     </div>

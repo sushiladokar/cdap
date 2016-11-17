@@ -18,6 +18,9 @@ import React, {PropTypes} from 'react';
 import PrimitiveSchemaRow from 'components/SchemaEditor/PrimitiveSchemaRow';
 import ArraySchemaRow from 'components/SchemaEditor/ArraySchemaRow';
 import MapSchemaRow from 'components/SchemaEditor/MapSchemaRow';
+import UnionSchemaRow from 'components/SchemaEditor/UnionSchemaRow';
+
+require('./AbstractSchemaRow.less');
 
 export default function AbstractSchemaRow({row}) {
   const renderSchemaRow = (row) => {
@@ -39,6 +42,10 @@ export default function AbstractSchemaRow({row}) {
       case 'map':
         return (
           <MapSchemaRow row={row} />
+        );
+      case 'union':
+        return (
+          <UnionSchemaRow row={row} />
         );
       default:
         return null;

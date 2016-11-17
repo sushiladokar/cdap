@@ -98,6 +98,14 @@ let createStoreInstance = () => {
                   "keys": "string",
                   "values": "string"
               }
+          },
+          {
+              "name": "Field8",
+              "type": [
+                  "string",
+                  "long",
+                  "boolean"
+              ]
           }
         ]
       }

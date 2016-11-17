@@ -17,14 +17,14 @@
 import React, {PropTypes} from 'react';
 import {parseType, SCHEMA_TYPES} from 'components/SchemaEditor/SchemaHelpers';
 import SelectWithOptions from 'components/SelectWithOptions';
-require('./ArraySchemaRow.less');
 
-export default function ArraySchemaRow({row}) {
-  let item = parseType(row.type.getItemsType());
+require('./UnionSchemaRow.less');
 
+export default function UnionSchemaRow({row}) {
+  let types = row.type.getTypes().map(type => parseType(type));
   return (
-    <div className="array-schema-row">
-      <div className="array-schema-field-row">
+    <div className="union-schema-row">
+      <div className="union-schema-field-row">
         <div className="field-name">
           {row.name}
         </div>
@@ -38,17 +38,26 @@ export default function ArraySchemaRow({row}) {
           TBD
         </div>
       </div>
-      <div className="array-schema-type-row">
-        <SelectWithOptions
-          options={SCHEMA_TYPES.types}
-          value={item.displayType}
-        />
+      <div className="union-schema-types-row">
+        {
+          types.map((type, index) => {
+            return (
+              <div key={index}>
+                <SelectWithOptions
+                  options={SCHEMA_TYPES.types}
+                  value={type.displayType}
+                />
+                <div className="field-type"></div>
+                <div className="field-isnull text-center"> TBD </div>
+              </div>
+            );
+          })
+        }
       </div>
     </div>
   );
 }
-
-ArraySchemaRow.propTypes = {
+UnionSchemaRow.propTypes = {
   row: PropTypes.shape({
     name: PropTypes.string,
     type: PropTypes.any

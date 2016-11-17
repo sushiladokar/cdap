@@ -41,7 +41,7 @@ export default class SchemaEditor extends Component {
             <div className="field-type">
               Type
             </div>
-            <div className="field-isnull">
+            <div className="field-isnull text-center">
               Null
             </div>
           </div>

@@ -15,8 +15,9 @@
  */
 
 import React, {PropTypes} from 'react';
-// import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
-import {parseType} from 'components/SchemaEditor/SchemaHelpers';
+import SelectWithOptions from 'components/SelectWithOptions';
+import {parseType, SCHEMA_TYPES} from 'components/SchemaEditor/SchemaHelpers';
+require('./MapSchemaRow.less');
 
 export default function MapSchemaRow({row}) {
   let rowType = parseType(row.type);
@@ -24,13 +25,43 @@ export default function MapSchemaRow({row}) {
   let valuesType = rowType.type.getValuesType().getTypeName();
   return (
     <div className="map-schema-row">
-      <div className="key-row">
-        <span> Key </span>
-        <span>{keysType}</span>
+      <div className="map-schema-field-row">
+        <div className="field-name">
+          {row.name}
+        </div>
+        <div className="field-type">
+          <SelectWithOptions
+            options={SCHEMA_TYPES.types}
+            value={row.displayType}
+          />
+        </div>
+        <div className="field-isnull text-center">
+          TBD
+        </div>
       </div>
-      <div className="value-row">
-        <span>Value </span>
-        <span>{valuesType}</span>
+      <div className="map-schema-kv-row">
+        <div className="key-row">
+          <div className="field-name">
+            <span className="text-right"> Key </span>
+            <SelectWithOptions
+              options={SCHEMA_TYPES.types}
+              value={keysType}
+            />
+          </div>
+          <div className="field-type"></div>
+          <div className="field-isnull text-center">TBD</div>
+        </div>
+        <div className="value-row">
+          <div className="field-name">
+            <span className="text-right">Value </span>
+            <SelectWithOptions
+              options={SCHEMA_TYPES.types}
+              value={valuesType}
+            />
+          </div>
+          <div className="field-type"></div>
+          <div className="field-isnull text-center">TBD</div>
+        </div>
       </div>
     </div>
   );
