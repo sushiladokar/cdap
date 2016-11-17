@@ -18,21 +18,22 @@ package co.cask.cdap.etl.batch.mapreduce;
 
 import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.etl.api.InvalidEntry;
-import co.cask.cdap.etl.batch.ETLTransformDetail;
+import co.cask.cdap.etl.api.batch.BatchEmitter;
+import co.cask.cdap.etl.batch.BatchTransformDetail;
 
-import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  *
  * @param <KEY_OUT>
  * @param <VAL_OUT>
  */
-public class SinkEmitter<KEY_OUT, VAL_OUT> extends ETLEmitter<Object> {
+public class SinkEmitter<KEY_OUT, VAL_OUT> extends BatchEmitter<BatchTransformDetail> {
   private final OutputWriter outputWriter;
   private final String stageName;
 
   public SinkEmitter(String stageName, OutputWriter<KEY_OUT, VAL_OUT> outputWriter) {
-    super(new HashMap<String, ETLTransformDetail>());
     this.outputWriter = outputWriter;
     this.stageName = stageName;
   }
@@ -49,7 +50,18 @@ public class SinkEmitter<KEY_OUT, VAL_OUT> extends ETLEmitter<Object> {
   }
 
   @Override
-  public void emitError(InvalidEntry<Object> invalidEntry) {
-    super.emitError(invalidEntry);
+  public void emitError(InvalidEntry invalidEntry) {
+   // Not supported
+  }
+
+  @Override
+  public void addTransformDetail(String stageName, BatchTransformDetail etlTransformDetail) {
+    //no-op
+  }
+
+  @Nullable
+  @Override
+  public Map<String, BatchTransformDetail> getNextStages() {
+    return null;
   }
 }

@@ -17,26 +17,30 @@
 package co.cask.cdap.etl.batch;
 
 import co.cask.cdap.etl.api.Transformation;
-import co.cask.cdap.etl.batch.mapreduce.ETLEmitter;
+import co.cask.cdap.etl.api.batch.BatchEmitter;
 
 
 /**
  *
  */
-public class ETLTransformDetail {
+public class BatchTransformDetail {
   private final Transformation transformation;
-  private final ETLEmitter<Object> emitter;
+  private final BatchEmitter<BatchTransformDetail> emitter;
 
-  public ETLTransformDetail(Transformation transformation, ETLEmitter<Object> emitter) {
+  public BatchTransformDetail(Transformation transformation, BatchEmitter<BatchTransformDetail> emitter) {
     this.transformation = transformation;
     this.emitter = emitter;
   }
 
-  public void process(Object value) throws Exception {
-    transformation.transform(value, emitter);
+  public void process(Object value) {
+    try {
+      transformation.transform(value, emitter);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
-  public ETLEmitter<Object> getEmitter() {
+  public BatchEmitter<BatchTransformDetail> getEmitter() {
     return emitter;
   }
 

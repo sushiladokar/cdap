@@ -61,9 +61,8 @@ public class TransformRunner<KEY, VALUE> {
     .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
     .registerTypeAdapter(SetMultimap.class, new SetMultimapCodec<>())
     .create();
-  private final Set<String> transformsWithoutErrorDataset;
   private final Map<String, ErrorOutputWriter<Object, Object>> transformErrorSinkMap;
-  private final ETLTransformExecutor<KeyValue<KEY, VALUE>> transformExecutor;
+  private final BatchTransformExecutor<KeyValue<KEY, VALUE>> transformExecutor;
   private final OutputWriter<Object, Object> outputWriter;
 
   public TransformRunner(MapReduceTaskContext<Object, Object> context,
@@ -102,12 +101,7 @@ public class TransformRunner<KEY, VALUE> {
       }
     }
 
-    TransformExecutorFactory<KeyValue<KEY, VALUE>> transformExecutorFactory =
-      new MapReduceTransformExecutorFactory<>(context, pluginInstantiator, metrics, runtimeArgs, sourceStage);
-    this.transformExecutor = transformExecutorFactory.create(phase, outputWriter);
-
     // setup error dataset information
-    this.transformsWithoutErrorDataset = new HashSet<>();
     this.transformErrorSinkMap = new HashMap<>();
     for (StageInfo transformInfo : phaseSpec.getPhase().getStagesOfType(Transform.PLUGIN_TYPE)) {
       String errorDatasetName = transformInfo.getErrorDatasetName();
@@ -115,6 +109,10 @@ public class TransformRunner<KEY, VALUE> {
         transformErrorSinkMap.put(transformInfo.getName(), new ErrorOutputWriter<>(context, errorDatasetName));
       }
     }
+
+    TransformExecutorFactory<KeyValue<KEY, VALUE>> transformExecutorFactory =
+      new MapReduceTransformExecutorFactory<>(context, pluginInstantiator, metrics, runtimeArgs, sourceStage);
+    this.transformExecutor = transformExecutorFactory.create(phase, outputWriter, transformErrorSinkMap);
   }
 
   // this is needed because we need to write to the context differently depending on the number of outputs
@@ -182,9 +180,5 @@ public class TransformRunner<KEY, VALUE> {
 //        }
 //      }
 //    }
-  }
-
-  public void destroy() {
-
   }
 }
