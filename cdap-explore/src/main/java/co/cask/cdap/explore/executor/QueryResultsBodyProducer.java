@@ -25,10 +25,14 @@ import co.cask.cdap.proto.QueryResult;
 import co.cask.http.BodyProducer;
 import com.google.gson.Gson;
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBufferOutputStream;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -43,7 +47,8 @@ final class QueryResultsBodyProducer extends BodyProducer {
   private final ExploreService exploreService;
   private final QueryHandle handle;
 
-  private final StringBuffer sb;
+  private final ChannelBuffer buffer;
+  private final PrintWriter writer;
 
   private List<QueryResult> results;
 
@@ -52,33 +57,39 @@ final class QueryResultsBodyProducer extends BodyProducer {
     this.exploreService = exploreService;
     this.handle = handle;
 
-    this.sb = new StringBuffer();
-
-    // initialize
-    sb.append(getCSVHeaders(exploreService.getResultSchema(handle)));
-    sb.append('\n');
-
-    results = exploreService.previewResults(handle);
-    if (results.isEmpty()) {
-      results = exploreService.nextResults(handle, AbstractQueryExecutorHttpHandler.DOWNLOAD_FETCH_CHUNK_SIZE);
-    }
+    this.buffer = ChannelBuffers.dynamicBuffer();
+    this.writer = new PrintWriter(new OutputStreamWriter(new ChannelBufferOutputStream(buffer),
+                                                         StandardCharsets.UTF_8));
   }
 
   @Override
   public ChannelBuffer nextChunk() throws Exception {
+    buffer.clear();
+
+    if (results == null) {
+      initialize();
+    }
+
     if (results.isEmpty()) {
       return ChannelBuffers.EMPTY_BUFFER;
     }
 
     for (QueryResult result : results) {
-      appendCSVRow(sb, result);
-      sb.append('\n');
+      appendCSVRow(writer, result);
     }
-    // If failed to send to client, just propagate the IOException and let netty-http to handle
-    ChannelBuffer toReturn = ChannelBuffers.wrappedBuffer(sb.toString().getBytes("UTF-8"));
-    sb.delete(0, sb.length());
+    writer.flush();
+
     results = exploreService.nextResults(handle, AbstractQueryExecutorHttpHandler.DOWNLOAD_FETCH_CHUNK_SIZE);
-    return toReturn;
+    return buffer;
+  }
+
+  private void initialize() throws HandleNotFoundException, SQLException, ExploreException {
+    writer.println(getCSVHeaders(exploreService.getResultSchema(handle)));
+
+    results = exploreService.previewResults(handle);
+    if (results.isEmpty()) {
+      results = exploreService.nextResults(handle, AbstractQueryExecutorHttpHandler.DOWNLOAD_FETCH_CHUNK_SIZE);
+    }
   }
 
   @Override
@@ -93,7 +104,7 @@ final class QueryResultsBodyProducer extends BodyProducer {
 
   private String getCSVHeaders(List<ColumnDesc> schema)
     throws HandleNotFoundException, SQLException, ExploreException {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     boolean first = true;
     for (ColumnDesc columnDesc : schema) {
       if (first) {
@@ -106,18 +117,18 @@ final class QueryResultsBodyProducer extends BodyProducer {
     return sb.toString();
   }
 
-  private String appendCSVRow(StringBuffer sb, QueryResult result)
+  private void appendCSVRow(PrintWriter printWriter, QueryResult result)
     throws HandleNotFoundException, SQLException, ExploreException {
     boolean first = true;
     for (Object o : result.getColumns()) {
       if (first) {
         first = false;
       } else {
-        sb.append(',');
+        printWriter.append(',');
       }
       // Using GSON toJson will serialize objects - in particular, strings will be quoted
-      sb.append(GSON.toJson(o));
+      printWriter.append(GSON.toJson(o));
     }
-    return sb.toString();
+    writer.println();
   }
 }
