@@ -6,6 +6,7 @@
       "http.client.read.timeout.ms": "120000",
       "kafka.log.dir": "/mnt/cdap/kafka-logs",
       "master.startup.checks.enabled": "false",
+      "enable.unrecoverable.reset": "true",
       "router.bind.port": "11015",
       "router.server.address": "{{ROUTER_IP_ADDRESS}}"
     },
