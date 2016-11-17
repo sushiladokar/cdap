@@ -17,7 +17,6 @@
 package co.cask.cdap.extension;
 
 import co.cask.cdap.common.utils.DirUtils;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
@@ -52,67 +51,60 @@ import javax.annotation.Nullable;
  *
  * The supported directory structure is:
  * <pre>
- *   [extensions-directory]/[extensions-module-directory]/
- *   [extensions-directory]/[extensions-module-directory]/file-containing-extensions-1.jar
- *   [extensions-directory]/[extensions-module-directory]/file-containing-extensions-2.jar
+ *   [extensions-directory]/[extensions-module-directory-1]/
+ *   [extensions-directory]/[extensions-module-directory-1]/file-containing-extensions-1.jar
+ *   [extensions-directory]/[extensions-module-directory-1]/file-containing-dependencies-1.jar
+ *   [extensions-directory]/[extensions-module-directory-1]/file-containing-dependencies-2.jar
+ *   [extensions-directory]/[extensions-module-directory-2]/
+ *   [extensions-directory]/[extensions-module-directory-2]/file-containing-extensions-2.jar
+ *   [extensions-directory]/[extensions-module-directory-2]/file-containing-extensions-3.jar
+ *   [extensions-directory]/[extensions-module-directory-2]/file-containing-dependencies-3.jar
+ *   [extensions-directory]/[extensions-module-directory-2]/file-containing-dependencies-4.jar
  *   ...
- *   [extensions-directory]/[extensions-module-directory]/file-containing-extensions-n.jar
+ *   [extensions-directory]/[extensions-module-directory-n]/file-containing-extensions-n.jar
  * </pre>
  *
  * Each extensions jar file above can contain multiple extensions.
- * 
+ *
+ *
+ *
  * @param <EXTENSION_TYPE> the data type of the objects that a given extension can be used for. e.g. for a program
  *                        runtime extension, the list of program types that the extension can be used for
  * @param <EXTENSION> the data type of the extension
  */
-public class ExtensionLoader<EXTENSION_TYPE, EXTENSION> {
-  private static final Logger LOG = LoggerFactory.getLogger(ExtensionLoader.class);
+public abstract class AbstractExtensionLoader<EXTENSION_TYPE, EXTENSION> {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractExtensionLoader.class);
 
   private final List<String> extDirs;
   private final Class<EXTENSION> extensionClass;
   // A ServiceLoader that loads extension implementation from the CDAP system classloader.
   private final ServiceLoader<EXTENSION> systemExtensionLoader;
-  // A function that maps an extension to the extension types that it supports. e.g. when the ExtensionLoader is used
-  // to load program runtime extensions, this function can map an extension to the program types that it supports.
-  // This is ultimately used to filter the available extensions to find the one that supports the requested type.
-  private final Function<EXTENSION, Set<EXTENSION_TYPE>> extensionToSupportedTypes;
   private final LoadingCache<EXTENSION_TYPE, EXTENSION> extensionsCache;
   private final EXTENSION defaultExtension;
 
-  public ExtensionLoader(String extDirs, Function<EXTENSION, Set<EXTENSION_TYPE>> extensionToSupportedTypes,
-                         Class<EXTENSION> extensionClass, EXTENSION defaultExtension) {
+  public AbstractExtensionLoader(String extDirs, Class<EXTENSION> extensionClass, EXTENSION defaultExtension) {
     this.extDirs = ImmutableList.copyOf(Splitter.on(';').omitEmptyStrings().trimResults().split(extDirs));
     this.extensionClass = extensionClass;
     this.systemExtensionLoader = ServiceLoader.load(extensionClass);
-    this.extensionToSupportedTypes = extensionToSupportedTypes;
     this.extensionsCache = createExtensionsCache();
     this.defaultExtension = defaultExtension;
   }
 
   /**
-   * Returns the extension for the specified key.
+   * Returns the set of objects that the extension supports. Implementations should return the set of objects of type
+   * #EXTENSION_TYPE that the specified extension applies to. A given extension can then be loaded for the specified
+   * type by using the #getExtension method.
+   *
+   * @param extension the extension for which supported types are requested
+   * @return the set of objects that the specified extension supports.
    */
-  public EXTENSION getExtension(EXTENSION_TYPE key) {
-    return extensionsCache.getUnchecked(key);
-  }
+  public abstract Set<EXTENSION_TYPE> getSupportedTypesForProvider(EXTENSION extension);
 
   /**
-   * Returns all cached extensions.
+   * Returns the extension for the specified object.
    */
-  public Map<EXTENSION_TYPE, EXTENSION> listExtensions() {
-    return extensionsCache.asMap();
-  }
-
-  /**
-   * Preloads the extension cache with all the extensions from the specified extensions directory.
-   */
-  public void preload() {
-    extensionsCache.putAll(findExtensions(null));
-  }
-
-  @VisibleForTesting
-  void invalidate() {
-    extensionsCache.invalidateAll();
+  protected EXTENSION loadExtension(EXTENSION_TYPE type) {
+    return extensionsCache.getUnchecked(type);
   }
 
   private LoadingCache<EXTENSION_TYPE, EXTENSION> createExtensionsCache() {
@@ -129,41 +121,6 @@ public class ExtensionLoader<EXTENSION_TYPE, EXTENSION> {
         return Objects.firstNonNull(extensions.get(key), defaultExtension);
       }
     });
-  }
-
-  /**
-   * Creates a cache for caching extension directory to {@link ServiceLoader} of {@link EXTENSION}.
-   */
-  private LoadingCache<File, ServiceLoader<EXTENSION>> createServiceLoaderCache() {
-    return CacheBuilder.newBuilder().build(new CacheLoader<File, ServiceLoader<EXTENSION>>() {
-      @Override
-      public ServiceLoader<EXTENSION> load(File dir) throws Exception {
-        return createServiceLoader(dir);
-      }
-    });
-  }
-
-  /**
-   * Creates a {@link ServiceLoader} from the {@link ClassLoader} created by all jar files under the given directory.
-   */
-  private ServiceLoader<EXTENSION> createServiceLoader(File dir) {
-    List<File> files = new ArrayList<>(DirUtils.listFiles(dir, "jar"));
-    Collections.sort(files);
-
-    URL[] urls = Iterables.toArray(Iterables.transform(files, new Function<File, URL>() {
-      @Override
-      public URL apply(File input) {
-        try {
-          return input.toURI().toURL();
-        } catch (MalformedURLException e) {
-          // Shouldn't happen
-          throw Throwables.propagate(e);
-        }
-      }
-    }), URL.class);
-
-    URLClassLoader classLoader = new URLClassLoader(urls, ExtensionLoader.class.getClassLoader());
-    return ServiceLoader.load(extensionClass, classLoader);
   }
 
   /**
@@ -207,10 +164,11 @@ public class ExtensionLoader<EXTENSION_TYPE, EXTENSION> {
    * Returns the first available extension that support the specified key using the specified {@link ServiceLoader}.
    * If the key is {@code null}, returns all the extensions in the extensions directory
    */
-  private Map<EXTENSION_TYPE, EXTENSION> findExtensions(ServiceLoader<EXTENSION> serviceLoader, EXTENSION_TYPE key) {
+  private Map<EXTENSION_TYPE, EXTENSION> findExtensions(ServiceLoader<EXTENSION> serviceLoader,
+                                                        @Nullable EXTENSION_TYPE key) {
     Map<EXTENSION_TYPE, EXTENSION> extensions = new HashMap<>();
     for (EXTENSION provider : serviceLoader) {
-      Set<EXTENSION_TYPE> cacheKeys = extensionToSupportedTypes.apply(provider);
+      Set<EXTENSION_TYPE> cacheKeys = getSupportedTypesForProvider(provider);
       if (cacheKeys == null) {
         continue;
       }
@@ -228,5 +186,41 @@ public class ExtensionLoader<EXTENSION_TYPE, EXTENSION> {
       }
     }
     return extensions;
+  }
+
+
+  /**
+   * Creates a cache for caching extension directory to {@link ServiceLoader} of {@link EXTENSION}.
+   */
+  private LoadingCache<File, ServiceLoader<EXTENSION>> createServiceLoaderCache() {
+    return CacheBuilder.newBuilder().build(new CacheLoader<File, ServiceLoader<EXTENSION>>() {
+      @Override
+      public ServiceLoader<EXTENSION> load(File dir) throws Exception {
+        return createServiceLoader(dir);
+      }
+    });
+  }
+
+  /**
+   * Creates a {@link ServiceLoader} from the {@link ClassLoader} created by all jar files under the given directory.
+   */
+  private ServiceLoader<EXTENSION> createServiceLoader(File dir) {
+    List<File> files = new ArrayList<>(DirUtils.listFiles(dir, "jar"));
+    Collections.sort(files);
+
+    URL[] urls = Iterables.toArray(Iterables.transform(files, new Function<File, URL>() {
+      @Override
+      public URL apply(File input) {
+        try {
+          return input.toURI().toURL();
+        } catch (MalformedURLException e) {
+          // Shouldn't happen
+          throw Throwables.propagate(e);
+        }
+      }
+    }), URL.class);
+
+    URLClassLoader classLoader = new URLClassLoader(urls, getClass().getClassLoader());
+    return ServiceLoader.load(extensionClass, classLoader);
   }
 }

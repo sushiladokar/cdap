@@ -20,10 +20,9 @@ import co.cask.cdap.app.runtime.ProgramRunner;
 import co.cask.cdap.app.runtime.ProgramRuntimeProvider;
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
-import co.cask.cdap.extension.ExtensionLoader;
+import co.cask.cdap.extension.AbstractExtensionLoader;
 import co.cask.cdap.proto.ProgramType;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -40,7 +39,7 @@ import javax.annotation.Nullable;
  * the Java {@link ServiceLoader} architecture.
  */
 @Singleton
-public class ProgramRuntimeProviderLoader {
+public class ProgramRuntimeProviderLoader extends AbstractExtensionLoader<ProgramType, ProgramRuntimeProvider> {
 
   private static final Logger LOG = LoggerFactory.getLogger(ProgramRuntimeProviderLoader.class);
 
@@ -53,12 +52,11 @@ public class ProgramRuntimeProviderLoader {
     }
   };
 
-  private final ExtensionLoader<ProgramType, ProgramRuntimeProvider> programRuntimeExtensionLoader;
 
   @VisibleForTesting
   @Inject
   public ProgramRuntimeProviderLoader(CConfiguration cConf) {
-    this.programRuntimeExtensionLoader = createRuntimeExtensionLoader(cConf);
+    super(cConf.get(Constants.AppFabric.RUNTIME_EXT_DIR, ""), ProgramRuntimeProvider.class, NOT_SUPPORTED_PROVIDER);
   }
 
   /**
@@ -68,7 +66,7 @@ public class ProgramRuntimeProviderLoader {
   @Nullable
   public ProgramRuntimeProvider get(ProgramType programType) {
     try {
-      ProgramRuntimeProvider provider = programRuntimeExtensionLoader.getExtension(programType);
+      ProgramRuntimeProvider provider = loadExtension(programType);
       if (provider != NOT_SUPPORTED_PROVIDER) {
         return provider;
       }
@@ -78,20 +76,11 @@ public class ProgramRuntimeProviderLoader {
     return null;
   }
 
-  /**
-   * Creates a cache for caching {@link ProgramRuntimeProvider} for different {@link ProgramType}.
-   */
-  private ExtensionLoader<ProgramType, ProgramRuntimeProvider> createRuntimeExtensionLoader(CConfiguration cConf) {
-    // List of extension directories to scan
-    String extDirs = cConf.get(Constants.AppFabric.RUNTIME_EXT_DIR, "");
-    return new ExtensionLoader<>(extDirs, new Function<ProgramRuntimeProvider, Set<ProgramType>>() {
-      @Override
-      public Set<ProgramType> apply(ProgramRuntimeProvider provider) {
-        // See if the provide supports the required program type
-        ProgramRuntimeProvider.SupportedProgramType supportedType =
-          provider.getClass().getAnnotation(ProgramRuntimeProvider.SupportedProgramType.class);
-        return supportedType == null ? ImmutableSet.<ProgramType>of() : ImmutableSet.copyOf(supportedType.value());
-      }
-    }, ProgramRuntimeProvider.class, NOT_SUPPORTED_PROVIDER);
+  @Override
+  public Set<ProgramType> getSupportedTypesForProvider(ProgramRuntimeProvider programRuntimeProvider) {
+    // See if the provide supports the required program type
+    ProgramRuntimeProvider.SupportedProgramType supportedTypes =
+      programRuntimeProvider.getClass().getAnnotation(ProgramRuntimeProvider.SupportedProgramType.class);
+    return supportedTypes == null ? ImmutableSet.<ProgramType>of() : ImmutableSet.copyOf(supportedTypes.value());
   }
 }
