@@ -229,7 +229,7 @@ public class QueryExecutorHttpHandler extends AbstractQueryExecutorHttpHandler {
 
   @POST
   @Path("data/explore/queries/{id}/download")
-  public void downloadQueryResults(final HttpRequest request, final HttpResponder responder,
+  public void downloadQueryResults(HttpRequest request, final HttpResponder responder,
                                    @PathParam("id") final String id)
     throws ExploreException, IOException, SQLException, HandleNotFoundException {
     // NOTE: this call is a POST because it is not idempotent: cursor of results is moved
@@ -237,15 +237,14 @@ public class QueryExecutorHttpHandler extends AbstractQueryExecutorHttpHandler {
     doAs(handle, new Callable<Void>() {
       @Override
       public Void call() throws Exception {
-        doDownloadQueryResults(request, responder, handle);
+        doDownloadQueryResults(responder, handle);
         return null;
       }
     });
   }
 
-  private void doDownloadQueryResults(HttpRequest request, HttpResponder responder,
+  private void doDownloadQueryResults(HttpResponder responder,
                                       QueryHandle handle) throws ExploreException, IOException {
-    boolean responseStarted = false;
     try {
       if (handle.equals(QueryHandle.NO_OP) ||
         !exploreService.getStatus(handle).getStatus().equals(QueryStatus.OpStatus.FINISHED)) {
@@ -254,29 +253,20 @@ public class QueryExecutorHttpHandler extends AbstractQueryExecutorHttpHandler {
       }
 
       QueryResultsBodyProducer queryResultsBodyProducer = new QueryResultsBodyProducer(exploreService, handle);
-      queryResultsBodyProducer.initialize();
-      responseStarted = true;
       responder.sendContent(HttpResponseStatus.OK, queryResultsBodyProducer, null);
 
     } catch (IllegalArgumentException e) {
       LOG.debug("Got exception:", e);
-      // We can't send another response if sendContent has been called
-      if (!responseStarted) {
-        responder.sendString(HttpResponseStatus.BAD_REQUEST, e.getMessage());
-      }
+      responder.sendString(HttpResponseStatus.BAD_REQUEST, e.getMessage());
     } catch (SQLException e) {
       LOG.debug("Got exception:", e);
-      if (!responseStarted) {
-        responder.sendString(HttpResponseStatus.BAD_REQUEST, String.format("[SQLState %s] %s",
-                                                                           e.getSQLState(), e.getMessage()));
-      }
+      responder.sendString(HttpResponseStatus.BAD_REQUEST, String.format("[SQLState %s] %s",
+                                                                         e.getSQLState(), e.getMessage()));
     } catch (HandleNotFoundException e) {
-      if (!responseStarted) {
-        if (e.isInactive()) {
-          responder.sendString(HttpResponseStatus.CONFLICT, "Query is inactive");
-        } else {
-          responder.sendStatus(HttpResponseStatus.NOT_FOUND);
-        }
+      if (e.isInactive()) {
+        responder.sendString(HttpResponseStatus.CONFLICT, "Query is inactive");
+      } else {
+        responder.sendStatus(HttpResponseStatus.NOT_FOUND);
       }
     }
   }
