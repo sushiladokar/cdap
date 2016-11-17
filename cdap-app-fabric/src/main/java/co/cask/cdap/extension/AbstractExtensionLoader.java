@@ -25,6 +25,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -93,6 +95,29 @@ public abstract class AbstractExtensionLoader<EXTENSION_TYPE, EXTENSION> {
    */
   public EXTENSION get(EXTENSION_TYPE type) {
     return extensionsCache.getUnchecked(type).get();
+  }
+
+  /**
+   * Returns all extensions from the specified extensions directory.
+   */
+  public Map<EXTENSION_TYPE, EXTENSION> list() {
+    return Maps.transformValues(extensionsCache.asMap(), new Function<AtomicReference<EXTENSION>, EXTENSION>() {
+      @Override
+      public EXTENSION apply(AtomicReference<EXTENSION> input) {
+        return input.get();
+      }
+    });
+  }
+
+  protected void loadAll() {
+    extensionsCache.putAll(
+      Maps.transformValues(findExtensions(null), new Function<EXTENSION, AtomicReference<EXTENSION>>() {
+        @Override
+        public AtomicReference<EXTENSION> apply(EXTENSION input) {
+          return new AtomicReference<>(input);
+        }
+      })
+    );
   }
 
   /**
