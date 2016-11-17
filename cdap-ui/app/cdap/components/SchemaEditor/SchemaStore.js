@@ -20,12 +20,17 @@ const defaultAction = {
   payload: {}
 };
 
-const defaultState = [
-  {
-    name: '',
-    type: 'string'
-  }
-];
+const defaultState = {
+  name: 'etlSchemabody',
+  type: 'record',
+  fields: [
+    {
+      name: '',
+      type: {},
+      displayType: 'string'
+    }
+  ]
+};
 
 const schema = (state = defaultState, action = defaultAction) => {
   switch(action.type) {
@@ -46,12 +51,56 @@ let createStoreInstance = () => {
       schema
     }),
     {
-      schema: [
-        {
-          name: 'something',
-          type: 'string'
-        }
-      ]
+      schema: {
+        name: 'etlSchemabody',
+        type: 'record',
+        fields: [
+          {
+            name: 'Field1',
+            displayType: 'string',
+            type: 'string'
+          },
+          {
+            name: 'Field2',
+            displayType: 'int',
+            type: 'int'
+          },
+          {
+            name: 'Field3',
+            displayType: 'float',
+            type: 'float'
+          },
+          {
+              "name": "Field4",
+              "type": {
+                  "type": "array",
+                  "items": "int"
+              }
+          },
+          {
+              "name": "Field5",
+              "type": {
+                  "type": "array",
+                  "items": "int"
+              }
+          },
+          {
+              "name": "Field6",
+              "type": {
+                  "type": "array",
+                  "items": "int"
+              }
+          },
+          {
+              "name": "Field7",
+              "type": {
+                  "type": "map",
+                  "keys": "string",
+                  "values": "string"
+              }
+          }
+        ]
+      }
     }
   );
 };

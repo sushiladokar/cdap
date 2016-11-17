@@ -32,7 +32,8 @@
     "angular": false,
     "PKG": true,
     "getAbsUIUrl": true,
-    "_": true
+    "_": true,
+    "avsc": true
   },
   "plugins": ["react", "babel"],
   "extends": ["eslint:recommended", "plugin:react/recommended"]

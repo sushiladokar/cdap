@@ -17,6 +17,8 @@
 import React, {Component} from 'react';
 import {Provider} from 'react-redux';
 require('./SchemaEditor.less');
+import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
+import {getParsedSchema} from 'components/SchemaEditor/SchemaHelpers';
 
 import SchemaStore from 'components/SchemaEditor/SchemaStore';
 
@@ -25,7 +27,7 @@ export default class SchemaEditor extends Component {
     super(props);
     let state = SchemaStore.getState();
     this.state = {
-      rows: state.schema
+      rows: getParsedSchema(state.schema)
     };
   }
   render() {
@@ -48,7 +50,10 @@ export default class SchemaEditor extends Component {
                 .rows
                 .map((row, index) => {
                   return (
-                    <h4 key={index}> {row.name} </h4>
+                    <AbstractSchemaRow
+                      key={index}
+                      row={row}
+                    />
                   );
                 })
           }
