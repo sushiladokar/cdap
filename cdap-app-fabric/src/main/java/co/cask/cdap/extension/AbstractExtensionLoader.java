@@ -18,7 +18,6 @@ package co.cask.cdap.extension;
 
 import co.cask.cdap.common.utils.DirUtils;
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
@@ -40,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 /**
@@ -79,15 +79,20 @@ public abstract class AbstractExtensionLoader<EXTENSION_TYPE, EXTENSION> {
   private final Class<EXTENSION> extensionClass;
   // A ServiceLoader that loads extension implementation from the CDAP system classloader.
   private final ServiceLoader<EXTENSION> systemExtensionLoader;
-  private final LoadingCache<EXTENSION_TYPE, EXTENSION> extensionsCache;
-  private final EXTENSION defaultExtension;
+  private final LoadingCache<EXTENSION_TYPE, AtomicReference<EXTENSION>> extensionsCache;
 
-  public AbstractExtensionLoader(String extDirs, Class<EXTENSION> extensionClass, EXTENSION defaultExtension) {
+  public AbstractExtensionLoader(String extDirs, Class<EXTENSION> extensionClass) {
     this.extDirs = ImmutableList.copyOf(Splitter.on(';').omitEmptyStrings().trimResults().split(extDirs));
     this.extensionClass = extensionClass;
     this.systemExtensionLoader = ServiceLoader.load(extensionClass);
     this.extensionsCache = createExtensionsCache();
-    this.defaultExtension = defaultExtension;
+  }
+
+  /**
+   * Returns the extension for the specified object if one is found, otherwise returns {@code null}.
+   */
+  public EXTENSION get(EXTENSION_TYPE type) {
+    return extensionsCache.getUnchecked(type).get();
   }
 
   /**
@@ -100,25 +105,18 @@ public abstract class AbstractExtensionLoader<EXTENSION_TYPE, EXTENSION> {
    */
   public abstract Set<EXTENSION_TYPE> getSupportedTypesForProvider(EXTENSION extension);
 
-  /**
-   * Returns the extension for the specified object.
-   */
-  protected EXTENSION loadExtension(EXTENSION_TYPE type) {
-    return extensionsCache.getUnchecked(type);
-  }
-
-  private LoadingCache<EXTENSION_TYPE, EXTENSION> createExtensionsCache() {
-    return CacheBuilder.newBuilder().build(new CacheLoader<EXTENSION_TYPE, EXTENSION>() {
+  private LoadingCache<EXTENSION_TYPE, AtomicReference<EXTENSION>> createExtensionsCache() {
+    return CacheBuilder.newBuilder().build(new CacheLoader<EXTENSION_TYPE, AtomicReference<EXTENSION>>() {
       @Override
-      public EXTENSION load(EXTENSION_TYPE key) throws Exception {
-        Map<EXTENSION_TYPE, EXTENSION> extensions = findExtensions(key);
-        // If there is none found in the ext dir, try to look it up from the CDAP system class ClassLoader.
-        // This is for the unit-test case, where extensions are part of the test dependency, hence in the
-        // unit-test ClassLoader.
-        // If no provider was found, returns the NOT_SUPPORTED_PROVIDER so that we won't search again for
-        // this program type.
-        // Cannot use null because LoadingCache doesn't allow null value
-        return Objects.firstNonNull(extensions.get(key), defaultExtension);
+      public AtomicReference<EXTENSION> load(EXTENSION_TYPE extensionType) throws Exception {
+        EXTENSION extension = null;
+        try {
+          Map<EXTENSION_TYPE, EXTENSION> extensions = findExtensions(extensionType);
+          extension = extensions.get(extensionType);
+        } catch (Throwable t) {
+          LOG.warn("Failed to load extension for type {}.", extensionType);
+        }
+        return new AtomicReference<>(extension);
       }
     });
   }
@@ -150,9 +148,10 @@ public abstract class AbstractExtensionLoader<EXTENSION_TYPE, EXTENSION> {
         }
       }
     }
-    // For unit tests, try to load the extensions from the system classloader. Only add those extensions which
-    // were not already loaded using the extension classloader.
+    // For unit tests, try to load the extensions from the system classloader. This is because in unit tests,
+    // extensions are part of the test dependency, hence in the unit-test ClassLoader.
     for (Map.Entry<EXTENSION_TYPE, EXTENSION> entry : findExtensions(systemExtensionLoader, key).entrySet()) {
+      // Only add those extensions which were not already loaded using the extension classloader.
       if (!extensions.containsKey(entry.getKey())) {
         extensions.put(entry.getKey(), entry.getValue());
       }
