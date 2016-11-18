@@ -83,10 +83,19 @@ public class ZKRouteStore implements RouteStore {
   @Override
   public void store(final ProgramId serviceId, final RouteConfig routeConfig) {
     Supplier<RouteConfig> supplier = Suppliers.ofInstance(routeConfig);
+    SettableFuture<RouteConfig> oldConfigFuture = routeConfigMap.get(serviceId);
     Future<RouteConfig> future = ZKExtOperations.createOrSet(zkClient, getZKPath(serviceId), supplier,
                                                              ROUTE_CONFIG_CODEC, 10);
     try {
       future.get(ZK_TIMEOUT_SECS, TimeUnit.SECONDS);
+      SettableFuture<RouteConfig> newFuture = SettableFuture.create();
+      newFuture.set(routeConfig);
+
+      if (oldConfigFuture != null) {
+        routeConfigMap.replace(serviceId, oldConfigFuture, newFuture);
+      } else {
+        routeConfigMap.putIfAbsent(serviceId, newFuture);
+      }
     } catch (ExecutionException | InterruptedException | TimeoutException ex) {
       throw Throwables.propagate(ex);
     }
