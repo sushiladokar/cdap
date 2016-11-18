@@ -89,6 +89,10 @@ public abstract class PayloadTableTest {
       table.delete(t1, 101);
       iterator = table.fetch(t1, 101, new MessageId(messageId), true, Integer.MAX_VALUE);
       checkData(iterator, 123, null, 0);
+
+      // Fetch from t2 with 101 write pointer
+      iterator = table.fetch(t2, 101, new MessageId(messageId), true, Integer.MAX_VALUE);
+      checkData(iterator, 123, ImmutableSet.of(101L), 50);
     }
   }
 
@@ -113,6 +117,7 @@ public abstract class PayloadTableTest {
     for (Integer writePtr : writePointers) {
       for (int i = 0; i < 50; i++) {
         payloadTable.add(new TestPayloadEntry(t1, writePtr, timestamp, seqId++, Bytes.toBytes(data)));
+        payloadTable.add(new TestPayloadEntry(t2, writePtr, timestamp, seqId++, Bytes.toBytes(data)));
       }
     }
   }

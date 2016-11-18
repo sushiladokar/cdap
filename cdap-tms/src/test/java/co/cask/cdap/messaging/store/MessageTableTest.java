@@ -114,6 +114,10 @@ public abstract class MessageTableTest {
       tx = new Transaction(200, 200, new long[] { }, new long[] { }, -1);
       iterator = table.fetch(t1, 0, Integer.MAX_VALUE, tx);
       checkPointerCount(iterator, 123, ImmutableSet.of(102L), 50);
+
+      // Use the above tx and read from t2 and it should give all entries
+      iterator = table.fetch(t2, 0, Integer.MAX_VALUE, tx);
+      checkPointerCount(iterator, 321, ImmutableSet.of(100L, 101L, 102L), 150);
     }
   }
 
