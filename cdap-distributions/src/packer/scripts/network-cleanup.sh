@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright © 2015 Cask Data, Inc.
+# Copyright © 2015-2016 Cask Data, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -28,5 +28,15 @@ done
 
 # Adding a 2 sec delay to the interface up, to make the dhclient happy
 echo "pre-up sleep 2" >> /etc/network/interfaces
+if test -e /etc/network/interfaces.d/eth0.cfg; then
+  echo "pre-up sleep 2" >> /etc/network/interfaces.d/eth0.cfg
+fi
+
+# Ensure SSH is set to startup
+if [[ $(which update-rc.d &>/dev/null) ]]; then
+  update-rc.d ssh defaults
+elif [[ $(which chkconfig &>/dev/null) ]]; then
+  chkconfig sshd on
+fi
 
 exit 0

@@ -139,7 +139,7 @@
     {
       "type": "chef-solo",
       "remote_cookbook_paths": "/var/chef/cookbooks",
-      "run_list": "recipe[cdap::sdk]",
+      "run_list": "recipe[openssh],recipe[cdap::sdk]",
       "skip_install": true,
       "json": {
         "cdap": {
@@ -148,6 +148,14 @@
           "sdk": {
             "comment": "COPY SDK ZIP TO files/cdap-sdk.zip BEFORE RUNNING ME",
             "url": "file:///tmp/cdap-sdk.zip"
+          }
+        },
+        "openssh": {
+          "server": {
+            "protocol": "2",
+            "permit_root_login": "without-password",
+            "x11_forwarding": "no",
+            "use_dns": "no"
           }
         }
       }
