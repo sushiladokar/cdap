@@ -19,6 +19,8 @@ import PrimitiveSchemaRow from 'components/SchemaEditor/PrimitiveSchemaRow';
 import ArraySchemaRow from 'components/SchemaEditor/ArraySchemaRow';
 import MapSchemaRow from 'components/SchemaEditor/MapSchemaRow';
 import UnionSchemaRow from 'components/SchemaEditor/UnionSchemaRow';
+import EnumSchemaRow from 'components/SchemaEditor/EnumSchemaRow';
+import RecordSchemaRow from 'components/SchemaEditor/RecordSchemaRow';
 
 require('./AbstractSchemaRow.less');
 
@@ -46,6 +48,14 @@ export default function AbstractSchemaRow({row}) {
       case 'union':
         return (
           <UnionSchemaRow row={row} />
+        );
+      case 'enum':
+        return (
+          <EnumSchemaRow row={row} />
+        );
+      case 'record':
+        return (
+          <RecordSchemaRow row={row} />
         );
       default:
         return null;

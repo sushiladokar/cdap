@@ -71,41 +71,65 @@ let createStoreInstance = () => {
             type: 'float'
           },
           {
-              "name": "Field4",
-              "type": {
-                  "type": "array",
-                  "items": "int"
-              }
+            "name": "Field5",
+            "type": {
+                "type": "array",
+                "items": "string"
+            }
           },
           {
-              "name": "Field5",
-              "type": {
-                  "type": "array",
-                  "items": "int"
-              }
+            "name": "Field6",
+            "type": {
+              "type": "array",
+              "items": "int"
+            }
           },
           {
-              "name": "Field6",
-              "type": {
-                  "type": "array",
-                  "items": "int"
-              }
+            "name": "Field7",
+            "type": {
+              "type": "map",
+              "keys": "string",
+              "values": "string"
+            }
           },
           {
-              "name": "Field7",
-              "type": {
-                  "type": "map",
-                  "keys": "string",
-                  "values": "string"
-              }
+            "name": "Field8",
+            "type": [
+              "string",
+              "long",
+              "boolean"
+            ]
           },
           {
-              "name": "Field8",
-              "type": [
-                  "string",
-                  "long",
-                  "boolean"
+            "name": "Field9",
+            "type": {
+              "type": "enum",
+              "symbols": [
+                "ENUM1",
+                "ENUM2"
               ]
+            }
+          },
+          {
+              "name": "Field10",
+              "type": {
+                  "type": "record",
+                  "name": "a61c47d544edc4ebea93c8714fc6f6dce",
+                  "fields": [
+                      {
+                          "name": "name",
+                          "type": "string"
+                      },
+                      {
+                          "name": "email",
+                          "type": "string"
+                      },
+                      {
+                          "name": "phone",
+                          "type": "int"
+                      }
+                  ]
+              }
           }
         ]
       }
