@@ -14,44 +14,22 @@
  * the License.
 */
 .union-schema-row {
-  .union-schema-field-row {
-    .field-name {
-      width: ~"calc(100% - 80px - 75px)";
-      width: ~"-moz-calc(100% - 80px - 75px)";
-      width: ~"-webkit-calc(100% - 80px - 75px)";
-    }
-    .field-type {
-      width: 80px;
-      padding: 0 5px;
-    }
-    .field-isnull {
-      width: 75px;
-    }
-    .field-name,
-    .field-type,
-    .field-isnull {
-      display: inline-block;
-    }
-    .form-control {
-      padding: 0;
-      height: 25px;
-      margin: 0;
-    }
-  }
   .union-schema-types-row {
     padding-left: 5px;
 
-    .form-control {
-      width: ~"calc(100% - 85px - 75px)";
-      width: ~"-webkit-calc(100% - 85px - 75px)";
-      width: ~"-moz-calc(100% - 85px - 75px)";
-      padding: 0;
-      height: 25px;
-      margin: 2px 0;
-      display: inline-block;
+    > div {
+      > .form-control {
+        width: ~"calc(100% - 80px - 75px)";
+        width: ~"-webkit-calc(100% - 80px - 75px)";
+        width: ~"-moz-calc(100% - 80px - 75px)";
+        padding: 0;
+        height: 25px;
+        margin: 2px 0;
+        display: inline-block;
+      }
     }
     .field-type {
-      width: 85px;
+      width: 80px;
     }
     .field-isnull {
       width: 75px;

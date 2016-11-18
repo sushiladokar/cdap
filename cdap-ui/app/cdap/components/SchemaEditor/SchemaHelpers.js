@@ -14,7 +14,7 @@
  * the License.
  */
 
-import uuid from 'uuid';
+import uuid from 'node-uuid';
 
 const SCHEMA_TYPES = {
   'types': [

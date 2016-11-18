@@ -14,55 +14,67 @@
  * the License.
  */
 
-import React, {PropTypes} from 'react';
-import {parseType, SCHEMA_TYPES} from 'components/SchemaEditor/SchemaHelpers';
-import SelectWithOptions from 'components/SelectWithOptions';
+import React, {PropTypes, Component} from 'react';
+import {parseType} from 'components/SchemaEditor/SchemaHelpers';
 import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
 require('./RecordSchemaRow.less');
 import uuid from 'node-uuid';
 
-export default function RecordSchemaRow({row}) {
-  let rowType = parseType(row.type);
-  let fields = rowType.type.getFields().map((field) => {
-    let type = field.getType();
+export default class RecordSchemaRow extends Component{
+  constructor(props) {
+    super(props);
+    if (props.row.type) {
+      let rowType = parseType(props.row.type);
+      let fields = rowType.type.getFields().map((field) => {
+        let type = field.getType();
 
-    let partialObj = parseType(type);
+        let partialObj = parseType(type);
 
-    return Object.assign({}, partialObj, {
-      id: uuid.v4(),
-      name: field.getName()
-    });
-  });
-  return (
-    <div className="record-schema-row">
-      <div className="record-schema-field-row">
-        <div className="field-name">
-          {row.name}
-        </div>
-        <div className="field-type">
-          <SelectWithOptions
-            options={SCHEMA_TYPES.types}
-            value={row.displayType}
-          />
-        </div>
-        <div className="field-isnull text-center">
-          TBD
+        return Object.assign({}, partialObj, {
+          id: uuid.v4(),
+          name: field.getName()
+        });
+      });
+      this.state = {
+        type: 'record',
+        name: uuid.v4(),
+        fields
+      };
+    } else {
+      this.state = {
+        type: 'record',
+        name: uuid.v4(),
+        fields: [
+          {
+            name: '',
+            type: 'string',
+            displayType: 'string',
+            nullable: false,
+            id: uuid.v4(),
+            nested: false
+          }
+        ]
+      };
+    }
+  }
+  render() {
+    return (
+      <div className="record-schema-row">
+        <div className="record-schema-records-row">
+          {
+            this.state.fields.map( (field, index) => {
+              return (
+                <AbstractSchemaRow
+                  row={field}
+                  key={index}
+                />
+              );
+            })
+          }
         </div>
       </div>
-      <div className="record-schema-records-row">
-        {
-          fields.map( (field, index) => {
-            return (
-              <AbstractSchemaRow
-                row={field}
-                key={index}
-              />
-            );
-          })
-        }
-      </div>
-    </div>
-  );
+    );
+  }
 }
 
 RecordSchemaRow.propTypes = {

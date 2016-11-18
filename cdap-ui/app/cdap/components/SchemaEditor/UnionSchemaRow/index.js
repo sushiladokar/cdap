@@ -14,34 +14,76 @@
  * the License.
  */
 
-import React, {PropTypes} from 'react';
-import {parseType, SCHEMA_TYPES} from 'components/SchemaEditor/SchemaHelpers';
+import React, {PropTypes, Component} from 'react';
+import {parseType, SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor/SchemaHelpers';
 import SelectWithOptions from 'components/SelectWithOptions';
+import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
 
 require('./UnionSchemaRow.less');
 
-export default function UnionSchemaRow({row}) {
-  let types = row.type.getTypes().map(type => parseType(type));
-  return (
-    <div className="union-schema-row">
-      <div className="union-schema-types-row">
-        {
-          types.map((type, index) => {
-            return (
-              <div key={index}>
-                <SelectWithOptions
-                  options={SCHEMA_TYPES.types}
-                  value={type.displayType}
-                />
-                <div className="field-type"></div>
-                <div className="field-isnull text-center"> TBD </div>
-              </div>
-            );
-          })
-        }
+export default class UnionSchemaRow extends Component {
+  constructor(props) {
+    super(props);
+    if (props.row.type) {
+      let types = props.row.type.getTypes().map(type => parseType(type));
+      this.state = {
+        types
+      };
+    } else {
+      this.state = {
+        types: [
+          {
+            type: 'string',
+            displayType: 'string',
+            nullable: false,
+            nested: false
+          }
+        ]
+      };
+    }
+    this.onTypeChange = this.onTypeChange.bind(this);
+  }
+  onTypeChange(index, e) {
+    let types = this.state.types;
+    types[index].type = e.target.value;
+    types[index].displayType = e.target.value;
+    this.setState({
+      types
+    });
+  }
+  render() {
+    return (
+      <div className="union-schema-row">
+        <div className="union-schema-types-row">
+          {
+            this.state.types.map((type, index) => {
+              return (
+                <div key={index}>
+                  <SelectWithOptions
+                    options={SCHEMA_TYPES.types}
+                    value={type.displayType}
+                    onChange={this.onTypeChange.bind(this, index)}
+                  />
+                  <div className="field-type"></div>
+                  <div className="field-isnull text-center"> TBD </div>
+                  {
+                    checkComplexType(type.displayType) ?
+                      <AbstractSchemaRow
+                        row={{
+                          displayType: type.displayType
+                        }}
+                      />
+                    :
+                      null
+                  }
+                </div>
+              );
+            })
+          }
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 UnionSchemaRow.propTypes = {
   row: PropTypes.shape({

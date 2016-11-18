@@ -58,7 +58,7 @@ export default class MapSchemaRow extends Component {
         <div className="map-schema-kv-row">
           <div className="key-row">
             <div className="field-name">
-              <span className="text-right"> Key </span>
+              <span> Key </span>
               <SelectWithOptions
                 options={SCHEMA_TYPES.types}
                 value={this.state.keysType}
