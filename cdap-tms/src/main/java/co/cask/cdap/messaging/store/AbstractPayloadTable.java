@@ -83,14 +83,17 @@ public abstract class AbstractPayloadTable implements PayloadTable {
                                         boolean inclusive, int limit) throws IOException {
     byte[] topic = MessagingUtils.toRowKeyPrefix(topicId);
     byte[] startRow = new byte[topic.length + (2 * Bytes.SIZEOF_LONG) + Bytes.SIZEOF_SHORT];
+    byte[] stopRow = new byte[topic.length + Bytes.SIZEOF_LONG];
     Bytes.putBytes(startRow, 0, topic, 0, topic.length);
+    Bytes.putBytes(stopRow, 0, topic, 0, topic.length);
     Bytes.putLong(startRow, topic.length, transactionWritePointer);
+    Bytes.putLong(stopRow, topic.length, transactionWritePointer);
     Bytes.putLong(startRow, topic.length + Bytes.SIZEOF_LONG, messageId.getWriteTimestamp());
     Bytes.putShort(startRow, topic.length + (2 * Bytes.SIZEOF_LONG), messageId.getPayloadSequenceId());
     if (!inclusive) {
       startRow = Bytes.incrementBytes(startRow, 1);
     }
-    byte[] stopRow = Bytes.stopKeyForPrefix(topic);
+    stopRow = Bytes.stopKeyForPrefix(stopRow);
 
     final CloseableIterator<RawPayloadTableEntry> scanner = read(startRow, stopRow, limit);
     return new AbstractCloseableIterator<Entry>() {

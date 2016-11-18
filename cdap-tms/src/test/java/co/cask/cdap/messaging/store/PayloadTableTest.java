@@ -24,7 +24,6 @@ import co.cask.cdap.proto.id.TopicId;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -64,8 +63,6 @@ public abstract class PayloadTableTest {
     }
   }
 
-  // TODO: Test ignored since it fails and needs to be debugged
-  @Ignore
   @Test
   public void testConsumption() throws Exception {
     try (PayloadTable table = getPayloadTable()) {
@@ -74,9 +71,24 @@ public abstract class PayloadTableTest {
       table.store(entryList.iterator());
       byte[] messageId = new byte[MessageId.RAW_ID_SIZE];
       MessageId.putRawId(0L, (short) 0, 0L, (short) 0, messageId, 0);
+
+      // Fetch data with 100 write pointer
       CloseableIterator<PayloadTable.Entry> iterator = table.fetch(t1, 100, new MessageId(messageId), true,
                                                                    Integer.MAX_VALUE);
       checkData(iterator, 123, ImmutableSet.of(100L), 50);
+
+      // Fetch only 10 items with 101 write pointer
+      iterator = table.fetch(t1, 101, new MessageId(messageId), true, 1);
+      checkData(iterator, 123, ImmutableSet.of(101L), 1);
+
+      // Fetch items with 102 write pointer
+      iterator = table.fetch(t1, 102, new MessageId(messageId), true, Integer.MAX_VALUE);
+      checkData(iterator, 123, ImmutableSet.of(102L), 50);
+
+      // Delete items with 101 write pointer and then try and read from that
+      table.delete(t1, 101);
+      iterator = table.fetch(t1, 101, new MessageId(messageId), true, Integer.MAX_VALUE);
+      checkData(iterator, 123, null, 0);
     }
   }
 

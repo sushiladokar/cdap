@@ -55,11 +55,7 @@ public class LevelDBPayloadTable extends AbstractPayloadTable {
 
       @Override
       protected RawPayloadTableEntry computeNext() {
-        if (closed) {
-          return endOfData();
-        }
-
-        if (maxLimit <= 0 || (!iterator.hasNext())) {
+        if (closed || maxLimit <= 0 || (!iterator.hasNext())) {
           return endOfData();
         }
 

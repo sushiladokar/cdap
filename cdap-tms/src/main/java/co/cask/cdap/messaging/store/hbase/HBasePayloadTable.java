@@ -53,11 +53,11 @@ public class HBasePayloadTable extends AbstractPayloadTable {
   }
 
   @Override
-  public CloseableIterator<RawPayloadTableEntry> read(byte[] startRow, byte[] stopRow, int limit) throws IOException {
+  public CloseableIterator<RawPayloadTableEntry> read(byte[] startRow, byte[] stopRow,
+                                                      final int limit) throws IOException {
     Scan scan = tableUtil.buildScan()
       .setStartRow(startRow)
       .setStopRow(stopRow)
-      .setMaxResultSize(limit)
       .build();
     final ResultScanner scanner = hTable.getScanner(scan);
     final Iterator<Result> results = scanner.iterator();
@@ -65,14 +65,16 @@ public class HBasePayloadTable extends AbstractPayloadTable {
     return new AbstractCloseableIterator<RawPayloadTableEntry>() {
       private final RawPayloadTableEntry tableEntry = new RawPayloadTableEntry();
       private boolean closed = false;
+      private int maxLimit = limit;
 
       @Override
       protected RawPayloadTableEntry computeNext() {
-        if (closed || (!results.hasNext())) {
+        if (closed || maxLimit <= 0 || (!results.hasNext())) {
           return endOfData();
         }
 
         Result result = results.next();
+        maxLimit--;
         return tableEntry.set(result.getRow(), result.getValue(columnFamily, COL));
       }
 
