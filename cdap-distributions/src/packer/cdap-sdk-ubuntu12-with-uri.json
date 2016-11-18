@@ -179,15 +179,13 @@
         "scripts/remove-chef.sh",
         "scripts/sdk-cleanup.sh",
         "scripts/network-cleanup.sh",
+        "scripts/random-root-password.sh",
         "scripts/apt-cleanup.sh"
       ]
     },
     {
       "type": "shell",
-      "scripts": [
-        "scripts/random-root-password.sh",
-        "scripts/zero-disk.sh"
-      ],
+      "scripts": "scripts/zero-disk.sh",
       "only": ["cdap-sdk-vm"]
     }
   ]
