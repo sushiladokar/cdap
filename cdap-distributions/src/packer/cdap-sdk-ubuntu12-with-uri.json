@@ -186,6 +186,10 @@
       "type": "shell",
       "scripts": "scripts/zero-disk.sh",
       "only": ["cdap-sdk-vm"]
+    },
+    {
+      "type": "shell",
+      "scripts": "scripts/ssh-cleanup.sh"
     }
   ]
 }

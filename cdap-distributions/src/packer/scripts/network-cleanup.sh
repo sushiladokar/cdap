@@ -32,14 +32,4 @@ if test -e /etc/network/interfaces.d/eth0.cfg; then
   echo "pre-up sleep 2" >> /etc/network/interfaces.d/eth0.cfg
 fi
 
-# Ensure SSH is set to startup
-if [[ $(which update-rc.d &>/dev/null) ]]; then
-  update-rc.d ssh defaults
-elif [[ $(which chkconfig &>/dev/null) ]]; then
-  chkconfig sshd on
-fi
-
-# Delete SSH keys
-rm -f /etc/ssh/*_key /etc/ssh/*_key.pub /root/.ssh/authorized_keys* /home/*/.ssh/authorized_keys*
-
 exit 0
