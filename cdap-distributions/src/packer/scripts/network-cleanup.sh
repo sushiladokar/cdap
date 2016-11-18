@@ -39,4 +39,7 @@ elif [[ $(which chkconfig &>/dev/null) ]]; then
   chkconfig sshd on
 fi
 
+# Delete SSH keys
+rm -f /etc/ssh/*_key /etc/ssh/*_key.pub /root/.ssh/authorized_keys* /home/*/.ssh/authorized_keys*
+
 exit 0
