@@ -1015,4 +1015,14 @@ public final class Constants {
     public static final String ENABLED = "audit.enabled";
     public static final String KAFKA_TOPIC = "audit.kafka.topic";
   }
+
+  /**
+   * Constants for the messaging system
+   */
+  public static final class MessagingSystem {
+    public static final String METADATA_TABLE_NAME = "messaging.metadata.table.name";
+    public static final String MESSAGE_TABLE_NAME = "messaging.message.table.name";
+    public static final String PAYLOAD_TABLE_NAME = "messaging.payload.table.name";
+    public static final String TABLE_CACHE_EXPIRATION_SECONDS = "messaging.table.expiration.seconds";
+  }
 }

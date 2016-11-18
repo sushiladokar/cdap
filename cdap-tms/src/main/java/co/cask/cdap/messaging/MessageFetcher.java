@@ -21,6 +21,7 @@ import co.cask.cdap.messaging.data.Message;
 import co.cask.cdap.messaging.data.MessageId;
 import org.apache.tephra.Transaction;
 
+import java.io.IOException;
 import javax.annotation.Nullable;
 
 /**
@@ -116,5 +117,5 @@ public abstract class MessageFetcher {
     return limit;
   }
 
-  public abstract CloseableIterator<Message> fetch() throws TopicNotFoundException;
+  public abstract CloseableIterator<Message> fetch() throws IOException;
 }

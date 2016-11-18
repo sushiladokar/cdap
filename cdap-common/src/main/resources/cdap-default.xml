@@ -1065,6 +1065,31 @@
     <description>Scheduler queue for CDAP Master Services</description>
   </property>
 
+  <!-- Messaging System Configuration -->
+
+  <property>
+    <name>messaging.metadata.table.name</name>
+    <value>tms.meta</value>
+    <description>Name of the metadata table of the CDAP Messaging System</description>
+  </property>
+
+  <property>
+    <name>messaging.message.table.name</name>
+    <value>tms.message</value>
+    <description>Name of the message table of the CDAP Messaging System</description>
+  </property>
+
+  <property>
+    <name>messaging.payload.table.name</name>
+    <value>tms.payload</value>
+    <description>Name of the payload table of the CDAP Messaging System</description>
+  </property>
+
+  <property>
+    <name>messaging.table.expiration.seconds</name>
+    <value>300</value>
+    <description>Number of seconds that the messaging table cache will expire</description>
+  </property>
 
   <!-- Metadata Configuration -->
 
