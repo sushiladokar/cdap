@@ -14,45 +14,45 @@
  * the License.
  */
 
-import React, {PropTypes} from 'react';
-import {parseType, SCHEMA_TYPES} from 'components/SchemaEditor/SchemaHelpers';
+import React, {PropTypes, Component} from 'react';
+import {parseType} from 'components/SchemaEditor/SchemaHelpers';
 import {Input} from 'reactstrap';
-import SelectWithOptions from 'components/SelectWithOptions';
 require('./EnumSchemaRow.less');
 
-export default function EnumSchemaRow({row}) {
-  let rowType = parseType(row.type);
-  let symbols = rowType.type.getSymbols();
-  return (
-    <div className="enum-schema-row">
-      <div className="enum-schema-field-row">
-        <div className="field-name">
-          {row.name}
-        </div>
-        <div className="field-type">
-          <SelectWithOptions
-            options={SCHEMA_TYPES.types}
-            value={row.displayType}
-          />
-        </div>
-        <div className="field-isnull text-center">
-          TBD
+export default class EnumSchemaRow extends Component {
+  constructor(props) {
+    super(props);
+    if (props.row.type) {
+      let rowType = parseType(props.row.type);
+      let symbols = rowType.type.getSymbols();
+      this.state = {
+        symbols
+      };
+    } else {
+      this.state = {
+        symbols: ['']
+      };
+    }
+  }
+
+  render() {
+    return (
+      <div className="enum-schema-row">
+        <div className="enum-schema-symbols-row">
+          {
+            this.state.symbols.map((symbol, index) => {
+              return (
+                <Input
+                  key={index}
+                  value={symbol}
+                />
+              );
+            })
+          }
         </div>
       </div>
-      <div className="enum-schema-symbols-row">
-        {
-          symbols.map((symbol, index) => {
-            return (
-              <Input
-                key={index}
-                value={symbol}
-              />
-            );
-          })
-        }
-      </div>
-    </div>
-  );
+    );
+  }
 }
 
 EnumSchemaRow.propTypes = {

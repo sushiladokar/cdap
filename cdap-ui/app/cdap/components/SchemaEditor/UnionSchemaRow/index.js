@@ -24,20 +24,6 @@ export default function UnionSchemaRow({row}) {
   let types = row.type.getTypes().map(type => parseType(type));
   return (
     <div className="union-schema-row">
-      <div className="union-schema-field-row">
-        <div className="field-name">
-          {row.name}
-        </div>
-        <div className="field-type">
-          <SelectWithOptions
-            options={SCHEMA_TYPES.types}
-            value={row.displayType}
-          />
-        </div>
-        <div className="field-isnull text-center">
-          TBD
-        </div>
-      </div>
       <div className="union-schema-types-row">
         {
           types.map((type, index) => {

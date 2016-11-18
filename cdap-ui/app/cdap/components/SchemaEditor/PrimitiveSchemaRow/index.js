@@ -14,33 +14,70 @@
  * the License.
  */
 
-import React, {PropTypes} from 'react';
+import React, {PropTypes, Component} from 'react';
 require('./PrimitiveSchemaRow.less');
-import {SCHEMA_TYPES} from 'components/SchemaEditor/SchemaHelpers';
+import {SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor/SchemaHelpers';
 import SelectWithOptions from 'components/SelectWithOptions';
+import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
 
-export default function PrimitiveSchemaRow({row}) {
-  return (
-    <div className="primitive-schema-row">
-      <div className="field-name">
-        {row.name}
+import {Input} from 'reactstrap';
+
+export default class PrimitiveSchemaRow extends Component{
+  constructor(props) {
+    super(props);
+    this.state = {
+      row: props.row,
+      name: props.row.name,
+      type: props.row.type,
+      displayType: props.row.displayType
+    };
+    this.onTypeChange = this.onTypeChange.bind(this);
+  }
+  onTypeChange(e) {
+    console.log('Value', e.target.value);
+    let displayType = e.target.value;
+    this.setState({
+      displayType: displayType,
+      row: Object.assign({}, this.state.row, {displayType})
+    });
+  }
+  render() {
+    return (
+      <div className="primitive-schema-row">
+        <div className="field-name">
+          <Input
+            value={this.state.name}
+          />
+        </div>
+        <div className="field-type">
+          <SelectWithOptions
+            options={SCHEMA_TYPES.types}
+            onChange={this.onTypeChange}
+            value={this.state.displayType}
+          />
+        </div>
+        <div className="field-isnull text-center">
+          TBD
+        </div>
+        {
+          checkComplexType(this.state.displayType) ?
+            <AbstractSchemaRow
+              row={{
+                displayType: this.state.displayType
+              }}
+            />
+          :
+            null
+        }
       </div>
-      <div className="field-type">
-        <SelectWithOptions
-          options={SCHEMA_TYPES.types}
-          value={row.displayType}
-        />
-      </div>
-      <div className="field-isnull text-center">
-        TBD
-      </div>
-    </div>
-  );
+    );
+  }
 }
 
 PrimitiveSchemaRow.propTypes = {
   row: PropTypes.shape({
     name: PropTypes.string,
-    type: PropTypes.any
+    type: PropTypes.any,
+    displayType: PropTypes.string
   })
 };

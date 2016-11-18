@@ -14,57 +14,96 @@
  * the License.
  */
 
-import React, {PropTypes} from 'react';
+import React, {PropTypes, Component} from 'react';
 import SelectWithOptions from 'components/SelectWithOptions';
-import {parseType, SCHEMA_TYPES} from 'components/SchemaEditor/SchemaHelpers';
+import {parseType, SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor/SchemaHelpers';
+import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
+
 require('./MapSchemaRow.less');
 
-export default function MapSchemaRow({row}) {
-  let rowType = parseType(row.type);
-  let keysType = rowType.type.getKeysType().getTypeName();
-  let valuesType = rowType.type.getValuesType().getTypeName();
-  return (
-    <div className="map-schema-row">
-      <div className="map-schema-field-row">
-        <div className="field-name">
-          {row.name}
-        </div>
-        <div className="field-type">
-          <SelectWithOptions
-            options={SCHEMA_TYPES.types}
-            value={row.displayType}
-          />
-        </div>
-        <div className="field-isnull text-center">
-          TBD
+export default class MapSchemaRow extends Component {
+  constructor(props) {
+    super(props);
+    if (props.row.type) {
+      let rowType = parseType(props.row.type);
+      this.state = {
+        name: props.row.name,
+        keysType: rowType.type.getKeysType().getTypeName(),
+        valuesTypes: rowType.type.getValuesType().getTypeName()
+      };
+    } else {
+      this.state = {
+        name: props.row.name,
+        keysType: 'string',
+        valuesType: 'string',
+        type: props.row.type || null
+      };
+    }
+    this.onKeysTypeChange = this.onKeysTypeChange.bind(this);
+    this.onValuesTypeChange = this.onValuesTypeChange.bind(this);
+  }
+  onKeysTypeChange(e) {
+    this.setState({
+      keysType: e.target.value
+    });
+  }
+  onValuesTypeChange(e) {
+    this.setState({
+      valuesType: e.target.value
+    });
+  }
+  render() {
+    return (
+      <div className="map-schema-row">
+        <div className="map-schema-kv-row">
+          <div className="key-row">
+            <div className="field-name">
+              <span className="text-right"> Key </span>
+              <SelectWithOptions
+                options={SCHEMA_TYPES.types}
+                value={this.state.keysType}
+                onChange={this.onKeysTypeChange}
+              />
+            </div>
+            <div className="field-type"></div>
+            <div className="field-isnull text-center">TBD</div>
+            {
+              checkComplexType(this.state.keysType) ?
+                <AbstractSchemaRow
+                  row={{
+                    displayType: this.state.keysType
+                  }}
+                />
+              :
+                null
+            }
+          </div>
+          <div className="value-row">
+            <div className="field-name">
+              <span className="text-right">Value </span>
+              <SelectWithOptions
+                options={SCHEMA_TYPES.types}
+                value={this.state.valuesType}
+                onChange={this.onValuesTypeChange}
+              />
+            </div>
+            <div className="field-type"></div>
+            <div className="field-isnull text-center">TBD</div>
+              {
+                checkComplexType(this.state.valuesType) ?
+                  <AbstractSchemaRow
+                    row={{
+                      displayType: this.state.valuesType
+                    }}
+                  />
+                :
+                  null
+              }
+          </div>
         </div>
       </div>
-      <div className="map-schema-kv-row">
-        <div className="key-row">
-          <div className="field-name">
-            <span className="text-right"> Key </span>
-            <SelectWithOptions
-              options={SCHEMA_TYPES.types}
-              value={keysType}
-            />
-          </div>
-          <div className="field-type"></div>
-          <div className="field-isnull text-center">TBD</div>
-        </div>
-        <div className="value-row">
-          <div className="field-name">
-            <span className="text-right">Value </span>
-            <SelectWithOptions
-              options={SCHEMA_TYPES.types}
-              value={valuesType}
-            />
-          </div>
-          <div className="field-type"></div>
-          <div className="field-isnull text-center">TBD</div>
-        </div>
-      </div>
-    </div>
-  );
+    );
+  }
 }
 
 MapSchemaRow.propTypes = {

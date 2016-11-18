@@ -14,38 +14,57 @@
  * the License.
  */
 
-import React, {PropTypes} from 'react';
-import {parseType, SCHEMA_TYPES} from 'components/SchemaEditor/SchemaHelpers';
+import React, {PropTypes, Component} from 'react';
+import {parseType, SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor/SchemaHelpers';
 import SelectWithOptions from 'components/SelectWithOptions';
+import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
 require('./ArraySchemaRow.less');
 
-export default function ArraySchemaRow({row}) {
-  let item = parseType(row.type.getItemsType());
-
-  return (
-    <div className="array-schema-row">
-      <div className="array-schema-field-row">
-        <div className="field-name">
-          {row.name}
-        </div>
-        <div className="field-type">
+export default class ArraySchemaRow extends Component{
+  constructor(props) {
+    super(props);
+    if (props.row.type) {
+      let item = parseType(props.row.type.getItemsType());
+      this.state = {
+        displayType: item.displayType,
+        row: props.row
+      };
+    } else {
+      this.state = {
+        row: null,
+        displayType: 'string'
+      };
+    }
+    this.onTypeChange = this.onTypeChange.bind(this);
+  }
+  onTypeChange(e) {
+    this.setState({
+      displayType: e.target.value
+    });
+  }
+  render() {
+    return (
+      <div className="array-schema-row">
+        <div className="array-schema-type-row">
           <SelectWithOptions
             options={SCHEMA_TYPES.types}
-            value={row.displayType}
+            value={this.state.displayType}
+            onChange={this.onTypeChange}
           />
         </div>
-        <div className="field-isnull text-center">
-          TBD
-        </div>
+        {
+          checkComplexType(this.state.displayType) ?
+            <AbstractSchemaRow
+              row={{
+                displayType: this.state.displayType
+              }}
+            />
+          :
+            null
+        }
       </div>
-      <div className="array-schema-type-row">
-        <SelectWithOptions
-          options={SCHEMA_TYPES.types}
-          value={item.displayType}
-        />
-      </div>
-    </div>
-  );
+    );
+  }
 }
 
 ArraySchemaRow.propTypes = {
