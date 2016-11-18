@@ -47,7 +47,7 @@ public abstract class PayloadTableTest {
     long txWritePtr = 123L;
     try (PayloadTable table = getPayloadTable()) {
       List<PayloadTable.Entry> entryList = new ArrayList<>();
-      entryList.add(new TestPayloadEntry(topicId, txWritePtr, Bytes.toBytes(payload)));
+      entryList.add(new TestPayloadEntry(topicId, txWritePtr, 0L, (short) 0, Bytes.toBytes(payload)));
       table.store(entryList.iterator());
       byte[] messageId = new byte[MessageId.RAW_ID_SIZE];
       MessageId.putRawId(0L, (short) 0, 0L, (short) 0, messageId, 0);
@@ -96,9 +96,11 @@ public abstract class PayloadTableTest {
     List<Integer> writePointers = ImmutableList.of(100, 101, 102);
     int data = 123;
 
+    long timestamp = System.currentTimeMillis();
+    short seqId = 0;
     for (Integer writePtr : writePointers) {
       for (int i = 0; i < 50; i++) {
-        payloadTable.add(new TestPayloadEntry(t1, writePtr, Bytes.toBytes(data)));
+        payloadTable.add(new TestPayloadEntry(t1, writePtr, timestamp, seqId++, Bytes.toBytes(data)));
       }
     }
   }
@@ -108,11 +110,16 @@ public abstract class PayloadTableTest {
     private final TopicId topicId;
     private final byte[] payload;
     private final long transactionWritePointer;
+    private final long writeTimestamp;
+    private final short seqId;
 
-    public TestPayloadEntry(TopicId topicId, long transactionWritePointer, byte[] payload) {
+    public TestPayloadEntry(TopicId topicId, long transactionWritePointer,
+                            long writeTimestamp, short seqId, byte[] payload) {
       this.topicId = topicId;
-      this.payload = payload;
       this.transactionWritePointer = transactionWritePointer;
+      this.writeTimestamp = writeTimestamp;
+      this.seqId = seqId;
+      this.payload = payload;
     }
 
     @Override
@@ -132,12 +139,12 @@ public abstract class PayloadTableTest {
 
     @Override
     public long getPayloadWriteTimestamp() {
-      return 0;
+      return writeTimestamp;
     }
 
     @Override
     public short getPayloadSequenceId() {
-      return 0;
+      return seqId;
     }
   }
 }

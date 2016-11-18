@@ -52,14 +52,12 @@ public interface PayloadTable extends Closeable {
     long getTransactionWritePointer();
 
     /**
-     * Returns the timestamp in milliseconds when the payload was written to the payload table. This method
-     * will not be called on store request.
+     * Returns the timestamp in milliseconds when the payload was written to the payload table.
      */
     long getPayloadWriteTimestamp();
 
     /**
-     * Returns the sequence id generated when the payload was written to the payload table. This method will not
-     * be called on store request.
+     * Returns the sequence id generated when the payload was written to the payload table.
      */
     short getPayloadSequenceId();
   }

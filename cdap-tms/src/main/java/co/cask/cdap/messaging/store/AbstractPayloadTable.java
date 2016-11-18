@@ -31,9 +31,8 @@ import java.util.Iterator;
  * Contains common logic for implementation of {@link PayloadTable}.
  */
 public abstract class AbstractPayloadTable implements PayloadTable {
-  private StoreIterator storeIterator;
-  private long writeTimestamp;
-  private short pSeqId;
+
+  private final StoreIterator storeIterator = new StoreIterator();
 
   /**
    * Delete the mesages in the Table, given a key range.
@@ -76,20 +75,7 @@ public abstract class AbstractPayloadTable implements PayloadTable {
 
   @Override
   public void store(Iterator<Entry> entries) throws IOException {
-    long writeTs = System.currentTimeMillis();
-    if (writeTs != writeTimestamp) {
-      pSeqId = 0;
-      writeTimestamp = writeTs;
-    }
-
-    if (storeIterator == null) {
-      storeIterator = new StoreIterator(entries, writeTimestamp, pSeqId);
-    } else {
-      storeIterator.reset(entries, writeTimestamp, pSeqId);
-    }
-
-    persist(storeIterator);
-    pSeqId = storeIterator.getSequenceId();
+    persist(storeIterator.reset(entries));
   }
 
   @Override
@@ -132,21 +118,13 @@ public abstract class AbstractPayloadTable implements PayloadTable {
   }
 
   private static class StoreIterator extends AbstractIterator<RawPayloadTableEntry> {
-    private final RawPayloadTableEntry tableEntry;
+
+    private final RawPayloadTableEntry tableEntry = new RawPayloadTableEntry();
 
     private Iterator<Entry> entries;
-    private long writeTs;
     private TopicId topicId;
     private byte[] topic;
     private byte[] rowKey;
-    private short sequenceId;
-
-    StoreIterator(Iterator<Entry> entries, long writeTs, short sequenceId) {
-      this.entries = entries;
-      this.tableEntry = new RawPayloadTableEntry();
-      this.writeTs = writeTs;
-      this.sequenceId = sequenceId;
-    }
 
     @Override
     protected RawPayloadTableEntry computeNext() {
@@ -160,21 +138,15 @@ public abstract class AbstractPayloadTable implements PayloadTable {
 
         Bytes.putBytes(rowKey, 0, topic, 0, topic.length);
         Bytes.putLong(rowKey, topic.length, entry.getTransactionWritePointer());
-        Bytes.putLong(rowKey, topic.length + Bytes.SIZEOF_LONG, writeTs);
-        Bytes.putShort(rowKey, topic.length + (2 * Bytes.SIZEOF_LONG), sequenceId++);
+        Bytes.putLong(rowKey, topic.length + Bytes.SIZEOF_LONG, entry.getPayloadWriteTimestamp());
+        Bytes.putShort(rowKey, topic.length + (2 * Bytes.SIZEOF_LONG), entry.getPayloadSequenceId());
         return tableEntry.set(rowKey, entry.getPayload());
       }
       return endOfData();
     }
 
-    private short getSequenceId() {
-      return sequenceId;
-    }
-
-    private StoreIterator reset(Iterator<Entry> entries, long writeTs, short sequenceId) {
+    private StoreIterator reset(Iterator<Entry> entries) {
       this.entries = entries;
-      this.writeTs = writeTs;
-      this.sequenceId = sequenceId;
       return this;
     }
   }

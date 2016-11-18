@@ -48,7 +48,7 @@ public abstract class MessageTableTest {
     long txWritePtr = 123L;
     try (MessageTable table = getMessageTable()) {
       List<MessageTable.Entry> entryList = new ArrayList<>();
-      entryList.add(new TestMessageEntry(topicId, true, true, txWritePtr, Bytes.toBytes(payload)));
+      entryList.add(new TestMessageEntry(topicId, true, true, txWritePtr, 0L, (short) 0, Bytes.toBytes(payload)));
       table.store(entryList.iterator());
       byte[] messageId = new byte[MessageId.RAW_ID_SIZE];
       MessageId.putRawId(0L, (short) 0, 0L, (short) 0, messageId, 0);
@@ -137,10 +137,12 @@ public abstract class MessageTableTest {
     int data1 = 123;
     int data2 = 321;
 
+    long timestamp = System.currentTimeMillis();
+    short seqId = 0;
     for (Integer writePtr : writePointers) {
       for (int i = 0; i < 50; i++) {
-        messageTable.add(new TestMessageEntry(t1, false, true, writePtr, Bytes.toBytes(data1)));
-        messageTable.add(new TestMessageEntry(t2, false, true, writePtr, Bytes.toBytes(data2)));
+        messageTable.add(new TestMessageEntry(t1, false, true, writePtr, timestamp, seqId++, Bytes.toBytes(data1)));
+        messageTable.add(new TestMessageEntry(t2, false, true, writePtr, timestamp, seqId++, Bytes.toBytes(data2)));
       }
     }
   }
@@ -152,13 +154,17 @@ public abstract class MessageTableTest {
     private final boolean isTransactional;
     private final long transactionWritePointer;
     private final byte[] payload;
+    private final long publishTimestamp;
+    private final short sequenceId;
 
     public TestMessageEntry(TopicId topicId, boolean isPayloadReference, boolean isTransactional,
-                            long transactionWritePointer, byte[] payload) {
+                            long transactionWritePointer, long publishTimestamp, short sequenceId, byte[] payload) {
       this.topicId = topicId;
       this.isPayloadReference = isPayloadReference;
       this.isTransactional = isTransactional;
       this.transactionWritePointer = transactionWritePointer;
+      this.publishTimestamp = publishTimestamp;
+      this.sequenceId = sequenceId;
       this.payload = payload;
     }
 
@@ -190,12 +196,12 @@ public abstract class MessageTableTest {
 
     @Override
     public long getPublishTimestamp() {
-      return 0;
+      return publishTimestamp;
     }
 
     @Override
     public short getSequenceId() {
-      return 0;
+      return sequenceId;
     }
   }
 }

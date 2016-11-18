@@ -67,14 +67,12 @@ public interface MessageTable extends Closeable {
     byte[] getPayload();
 
     /**
-     * Returns the timestamp in milliseconds when this entry was written to the message table. This method
-     * will not be called on store request.
+     * Returns the timestamp in milliseconds when this entry was written to the message table.
      */
     long getPublishTimestamp();
 
     /**
-     * Returns the sequence id generated when this entry was written to the message table. This method will not be
-     * called on store request.
+     * Returns the sequence id generated when this entry was written to the message table.
      */
     short getSequenceId();
   }

@@ -34,9 +34,8 @@ import javax.annotation.Nullable;
  * Contains common logic for implementation of {@link MessageTable}.
  */
 public abstract class AbstractMessageTable implements MessageTable {
-  private StoreIterator storeIterator;
-  private long writeTimestamp;
-  private short seqId;
+
+  private final StoreIterator storeIterator = new StoreIterator();
 
   private enum Result {
     ACCEPT,
@@ -103,20 +102,7 @@ public abstract class AbstractMessageTable implements MessageTable {
 
   @Override
   public void store(Iterator<Entry> entries) throws IOException {
-    long writeTs = System.currentTimeMillis();
-    if (writeTs != writeTimestamp) {
-      seqId = 0;
-      writeTimestamp = writeTs;
-    }
-
-    if (storeIterator == null) {
-      storeIterator = new StoreIterator(entries, writeTimestamp, seqId);
-    } else {
-      storeIterator.reset(entries, writeTimestamp, seqId);
-    }
-
-    persist(storeIterator);
-    seqId = storeIterator.getSequenceId();
+    persist(storeIterator.reset(entries));
   }
 
   @Override
@@ -194,21 +180,13 @@ public abstract class AbstractMessageTable implements MessageTable {
   }
 
   private static class StoreIterator extends AbstractIterator<RawMessageTableEntry> {
-    private final RawMessageTableEntry tableEntry;
+
+    private final RawMessageTableEntry tableEntry = new RawMessageTableEntry();
 
     private Iterator<Entry> entries;
-    private long writeTs;
     private TopicId topicId;
     private byte[] topic;
     private byte[] rowKey;
-    private short sequenceId;
-
-    StoreIterator(Iterator<Entry> entries, long writeTs, short sequenceId) {
-      this.entries = entries;
-      this.tableEntry = new RawMessageTableEntry();
-      this.writeTs = writeTs;
-      this.sequenceId = sequenceId;
-    }
 
     @Override
     protected RawMessageTableEntry computeNext() {
@@ -222,8 +200,8 @@ public abstract class AbstractMessageTable implements MessageTable {
         }
 
         Bytes.putBytes(rowKey, 0, topic, 0, topic.length);
-        Bytes.putLong(rowKey, topic.length, writeTs);
-        Bytes.putShort(rowKey, topic.length + Bytes.SIZEOF_LONG, sequenceId++);
+        Bytes.putLong(rowKey, topic.length, entry.getPublishTimestamp());
+        Bytes.putShort(rowKey, topic.length + Bytes.SIZEOF_LONG, entry.getSequenceId());
 
         byte[] txPtr = null;
         if (entry.isTransactional()) {
@@ -234,14 +212,8 @@ public abstract class AbstractMessageTable implements MessageTable {
       return endOfData();
     }
 
-    private short getSequenceId() {
-      return sequenceId;
-    }
-
-    private StoreIterator reset(Iterator<Entry> entries, long writeTs, short sequenceId) {
+    private StoreIterator reset(Iterator<Entry> entries) {
       this.entries = entries;
-      this.writeTs = writeTs;
-      this.sequenceId = sequenceId;
       return this;
     }
   }
