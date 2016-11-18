@@ -25,7 +25,7 @@ cd /var/chef/cookbooks
 # Initialize Git repository
 touch .gitignore
 
-apt-get install --no-install-recommends git || exit 1
+apt-get install -y --no-install-recommends git || exit 1
 git init || exit 1
 git add .gitignore
 git commit -m 'Initial commit'
