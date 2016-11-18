@@ -23,10 +23,12 @@ import co.cask.cdap.messaging.store.PayloadTable;
 import co.cask.cdap.messaging.store.RawPayloadTableEntry;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBException;
+import org.iq80.leveldb.WriteBatch;
 import org.iq80.leveldb.WriteOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -80,11 +82,15 @@ public class LevelDBPayloadTable extends AbstractPayloadTable {
 
   @Override
   public void persist(Iterator<RawPayloadTableEntry> entries) throws IOException {
-    try {
+    try (WriteBatch writeBatch = levelDB.createWriteBatch()) {
       while (entries.hasNext()) {
         RawPayloadTableEntry entry = entries.next();
-        levelDB.put(entry.getKey(), entry.getValue(), WRITE_OPTIONS);
+        byte[] key = entry.getKey();
+        byte[] value = entry.getValue();
+        // LevelDB doesn't make copies, and since we reuse RawPayloadTableEntry object, we need to create copies.
+        writeBatch.put(Arrays.copyOf(key, key.length), Arrays.copyOf(value, value.length));
       }
+      levelDB.write(writeBatch, WRITE_OPTIONS);
     } catch (DBException ex) {
       throw new IOException(ex);
     }

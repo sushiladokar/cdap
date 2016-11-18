@@ -24,6 +24,7 @@ import co.cask.cdap.messaging.store.MessageTable;
 import co.cask.cdap.messaging.store.RawMessageTableEntry;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBException;
+import org.iq80.leveldb.WriteBatch;
 import org.iq80.leveldb.WriteOptions;
 
 import java.io.IOException;
@@ -82,11 +83,14 @@ public class LevelDBMessageTable extends AbstractMessageTable {
 
   @Override
   protected void persist(Iterator<RawMessageTableEntry> entries) throws IOException {
-    try {
+    try (WriteBatch writeBatch = levelDB.createWriteBatch()) {
       while (entries.hasNext()) {
         RawMessageTableEntry entry = entries.next();
-        levelDB.put(entry.getKey(), encodeValue(entry.getTxPtr(), entry.getPayload()), WRITE_OPTIONS);
+        byte[] rowKey = entry.getKey();
+        // LevelDB doesn't make copies, and since we reuse RawMessageTableEntry object, we need to create copies.
+        writeBatch.put(Arrays.copyOf(rowKey, rowKey.length), encodeValue(entry.getTxPtr(), entry.getPayload()));
       }
+      levelDB.write(writeBatch, WRITE_OPTIONS);
     } catch (DBException ex) {
       throw new IOException(ex);
     }

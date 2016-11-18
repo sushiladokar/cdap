@@ -21,7 +21,7 @@ import co.cask.cdap.api.common.Bytes;
 import java.util.Arrays;
 
 /**
- *
+ * Uniquely identifies a message in the Messaging System.
  */
 public class MessageId {
 
@@ -112,6 +112,6 @@ public class MessageId {
     }
 
     MessageId other = (MessageId) o;
-    return Arrays.equals(rawId, ((MessageId) o).getRawId());
+    return Arrays.equals(rawId, other.getRawId());
   }
 }

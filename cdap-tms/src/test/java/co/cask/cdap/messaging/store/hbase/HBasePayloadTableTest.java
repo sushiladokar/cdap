@@ -60,7 +60,7 @@ public class HBasePayloadTableTest extends PayloadTableTest {
   }
 
   @Override
-  protected PayloadTable getTable() throws Exception {
+  protected PayloadTable getPayloadTable() throws Exception {
     byte[] columnFamily = {'d'};
     TableId tableId = tableUtil.createHTableId(NamespaceId.CDAP, "payloadTable");
     HColumnDescriptor hcd = new HColumnDescriptor(columnFamily);

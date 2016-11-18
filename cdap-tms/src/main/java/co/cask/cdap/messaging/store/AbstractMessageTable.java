@@ -44,6 +44,35 @@ public abstract class AbstractMessageTable implements MessageTable {
     HOLD
   }
 
+  /**
+   * Store the {@link RawMessageTableEntry}s persistently.
+   *
+   * @param entries {@link Iterator} of {@link RawMessageTableEntry}s
+   * @throws IOException thrown if there was an error while storing the entries
+   */
+  protected abstract void persist(Iterator<RawMessageTableEntry> entries) throws IOException;
+
+  /**
+   * Delete the transactionally published messages in the Table, given a key range and
+   * the transaction write pointer byte array.
+   *
+   * @param startKey start row prefix
+   * @param stopKey stop row prefix
+   * @param targetTxBytes byte array representation of Transaction Write pointer
+   * @throws IOException thrown if there was an error while trying to delete the entries
+   */
+  protected abstract void delete(byte[] startKey, byte[] stopKey, byte[] targetTxBytes) throws IOException;
+
+  /**
+   * Read the {@link RawMessageTableEntry}s given a key range.
+   *
+   * @param startRow start row prefix
+   * @param stopRow stop row prefix
+   * @return {@link CloseableIterator} of {@link RawMessageTableEntry}s
+   * @throws IOException throw if there was an error while trying to read the entries from the table
+   */
+  protected abstract CloseableIterator<RawMessageTableEntry> read(byte[] startRow, byte[] stopRow) throws IOException;
+
   @Override
   public CloseableIterator<Entry> fetch(TopicId topicId, long startTime, int limit,
                                         @Nullable Transaction transaction) throws IOException {
@@ -105,7 +134,7 @@ public abstract class AbstractMessageTable implements MessageTable {
     }
 
     long txWritePtr = Bytes.toLong(txPtr);
-    // This transaction is visible to everyone, hence accept the message
+    // This transaction is visible, hence accept the message
     if (transaction.isVisible(txWritePtr)) {
       return Result.ACCEPT;
     }
@@ -118,12 +147,6 @@ public abstract class AbstractMessageTable implements MessageTable {
     // This transaction has not yet been committed, hence hold to ensure ordering
     return Result.HOLD;
   }
-
-  protected abstract void persist(Iterator<RawMessageTableEntry> entries) throws IOException;
-
-  protected abstract void delete(byte[] startKey, byte[] stopKey, byte[] targetTxBytes) throws IOException;
-
-  protected abstract CloseableIterator<RawMessageTableEntry> read(byte[] startRow, byte[] stopRow) throws IOException;
 
   private static class MessageTableCloseableIterator extends AbstractCloseableIterator<Entry> {
     private final CloseableIterator<RawMessageTableEntry> scanner;

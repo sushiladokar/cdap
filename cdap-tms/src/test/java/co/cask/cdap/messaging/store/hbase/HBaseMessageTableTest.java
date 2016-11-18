@@ -60,7 +60,7 @@ public class HBaseMessageTableTest extends MessageTableTest {
   }
 
   @Override
-  protected MessageTable getTable() throws Exception {
+  protected MessageTable getMessageTable() throws Exception {
     byte[] columnFamily = { 'd' };
     TableId tableId = tableUtil.createHTableId(NamespaceId.CDAP, "messageTable");
     HColumnDescriptor hcd = new HColumnDescriptor(columnFamily);

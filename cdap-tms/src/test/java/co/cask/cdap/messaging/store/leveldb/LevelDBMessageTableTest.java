@@ -37,7 +37,7 @@ public class LevelDBMessageTableTest extends MessageTableTest {
   private static final Iq80DBFactory LEVEL_DB_FACTORY = new Iq80DBFactory();
 
   @Override
-  protected MessageTable getTable() throws Exception {
+  protected MessageTable getMessageTable() throws Exception {
     Options options = new Options()
       .createIfMissing(true)
       .errorIfExists(true);

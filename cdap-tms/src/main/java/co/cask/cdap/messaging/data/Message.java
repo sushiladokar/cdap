@@ -17,7 +17,7 @@
 package co.cask.cdap.messaging.data;
 
 /**
- *
+ * Contains the {@link MessageId} and the payload
  */
 public class Message {
   private final MessageId id;

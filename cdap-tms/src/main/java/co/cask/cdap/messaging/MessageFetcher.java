@@ -61,7 +61,7 @@ public abstract class MessageFetcher {
    */
   public MessageFetcher setStartTime(long startTime) {
     if (startTime < 0) {
-      throw new IllegalArgumentException("Invalid message fetching start time. Start time must be > 0");
+      throw new IllegalArgumentException("Invalid message fetching start time. Start time must be >= 0");
     }
     this.startTime = startTime;
     this.startOffset = null;
@@ -79,6 +79,12 @@ public abstract class MessageFetcher {
     return this;
   }
 
+  /**
+   * Sets the maximum limit on number of messages to be fetched. By default, this is set to {@code Integer.MAX_VALUE}.
+   *
+   * @param limit maximum number of messages to be fetched
+   * @return this instance
+   */
   public MessageFetcher setLimit(int limit) {
     if (limit <= 0) {
       throw new IllegalArgumentException("Invalid message fetching limit. Limit must be > 0");

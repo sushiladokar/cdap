@@ -37,7 +37,7 @@ public class LevelDBPayloadTableTest extends PayloadTableTest {
   private static final Iq80DBFactory LEVEL_DB_FACTORY = new Iq80DBFactory();
 
   @Override
-  protected PayloadTable getTable() throws Exception {
+  protected PayloadTable getPayloadTable() throws Exception {
     Options options = new Options()
       .createIfMissing(true)
       .errorIfExists(true);

@@ -35,6 +35,35 @@ public abstract class AbstractPayloadTable implements PayloadTable {
   private long writeTimestamp;
   private short pSeqId;
 
+  /**
+   * Delete the mesages in the Table, given a key range.
+   *
+   * @param startRow start row prefix
+   * @param stopRow stop row prefix
+   * @throws IOException thrown if there was an error while trying to delete the entries
+   */
+  protected abstract void delete(byte[] startRow, byte[] stopRow) throws IOException;
+
+  /**
+   * Store the {@link RawPayloadTableEntry}s persistently.
+   *
+   * @param tableEntries {@link Iterator} of {@link RawPayloadTableEntry}s
+   * @throws IOException thrown if there was an error while storing the entries
+   */
+  protected abstract void persist(Iterator<RawPayloadTableEntry> tableEntries) throws IOException;
+
+  /**
+   * Read the {@link RawPayloadTableEntry}s given a key range.
+   *
+   * @param startRow start row prefix
+   * @param stopRow stop row prefix
+   * @param limit maximum number of messages to read
+   * @return {@link CloseableIterator} of {@link RawPayloadTableEntry}s
+   * @throws IOException thrown if there was an error while trying to read the entries from the table
+   */
+  protected abstract CloseableIterator<RawPayloadTableEntry> read(byte[] startRow, byte[] stopRow,
+                                                                  int limit) throws IOException;
+
   @Override
   public void delete(TopicId topicId, long transactionWritePointer) throws IOException {
     byte[] topic = MessagingUtils.toRowKeyPrefix(topicId);
@@ -101,14 +130,6 @@ public abstract class AbstractPayloadTable implements PayloadTable {
       }
     };
   }
-
-  protected abstract void delete(byte[] startRow, byte[] stopRow) throws IOException;
-
-  protected abstract void persist(Iterator<RawPayloadTableEntry> tableEntries) throws IOException;
-
-  protected abstract CloseableIterator<RawPayloadTableEntry> read(byte[] startRow, byte[] stopRow,
-                                                                  int limit) throws IOException;
-
 
   private static class StoreIterator extends AbstractIterator<RawPayloadTableEntry> {
     private final RawPayloadTableEntry tableEntry;
