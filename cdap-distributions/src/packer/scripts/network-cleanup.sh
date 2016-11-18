@@ -22,7 +22,7 @@ rm -f /lib/udev/rules.d/75-persistent-net-generator.rules
 rm -rf /dev/.udev/ /var/lib/dhcp/*
 
 # Remove HWADDR/UUID from ifcfg-* files (RHEL-compatable)
-for ndev in /etc/sysconfig/network-scripts/ifcfg-*; do
+for ndev in $(ls -1 /etc/sysconfig/network-scripts/ifcfg-* 2>/dev/null); do
   [[ "${ndev##*/}" != "ifcfg-lo" ]] && sed -i '/^HWADDR/d;/^UUID/d' ${ndev}
 done
 
