@@ -24,7 +24,6 @@ import co.cask.cdap.etl.api.StageMetrics;
 import co.cask.cdap.etl.api.Transformation;
 import co.cask.cdap.etl.api.batch.BatchEmitter;
 import co.cask.cdap.etl.api.batch.BatchRuntimeContext;
-import co.cask.cdap.etl.api.batch.BatchSink;
 import co.cask.cdap.etl.batch.mapreduce.BatchTransformExecutor;
 import co.cask.cdap.etl.batch.mapreduce.ErrorOutputWriter;
 import co.cask.cdap.etl.batch.mapreduce.OutputWriter;
@@ -38,6 +37,8 @@ import co.cask.cdap.etl.planner.StageInfo;
 import com.google.common.collect.Sets;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,6 +51,7 @@ import javax.annotation.Nullable;
  * @param <T> the type of input for the created transform executors
  */
 public abstract class TransformExecutorFactory<T> {
+  private static final Logger LOG = LoggerFactory.getLogger(TransformExecutorFactory.class);
   protected final Map<String, Map<String, Schema>> perStageInputSchemas;
   private final String sourceStageName;
   private final MacroEvaluator macroEvaluator;
@@ -93,17 +95,20 @@ public abstract class TransformExecutorFactory<T> {
                                                                transformErrorSinkMap)
     throws Exception {
     Map<String, BatchTransformDetail> transformations = new HashMap<>();
-    Set<String> sinks = pipeline.getSinks();
+    Set<String> sources = pipeline.getSources();
 
-    for (String sink : sinks) {
-      transformations.put(sink, new BatchTransformDetail(getTransformation(BatchSink.PLUGIN_TYPE, sink), new
-        SinkEmitter<>(sink, outputWriter)));
+    // Set input and output schema for this stage
+    for (String pluginType : pipeline.getPluginTypes()) {
+      for (StageInfo stageInfo : pipeline.getStagesOfType(pluginType)) {
+        String stageName = stageInfo.getName();
+        outputSchema = stageInfo.getOutputSchema();
+        perStageInputSchemas.put(stageName, stageInfo.getInputSchemas());
+      }
     }
 
     // recursively set ETLTransformDetail for all the stages
-    for (String sink : sinks) {
-      StageInfo stageInfo = pipeline.getStage(sink);
-      setETLTransformDetail(pipeline, stageInfo, transformations, transformErrorSinkMap);
+    for (String source : sources) {
+      setETLTransformDetail(pipeline, source, transformations, transformErrorSinkMap, outputWriter);
     }
 
     // sourceStageName will be null in reducers, so need to handle that case
@@ -111,42 +116,46 @@ public abstract class TransformExecutorFactory<T> {
     return new BatchTransformExecutor<>(transformations, startingPoints);
   }
 
-  private void setETLTransformDetail(PipelinePhase pipeline, StageInfo stageInfo,
-                                     Map<String, BatchTransformDetail> transformations,
-                                     Map<String, ErrorOutputWriter<Object, Object>> transformErrorSinkMap)
-    throws Exception {
-    String stageName = stageInfo.getName();
-    BatchTransformDetail etlTransformDetail = transformations.get(stageName);
+  private <KEY_OUT, VAL_OUT> void setETLTransformDetail(PipelinePhase pipeline, String stageName,
+                                                        Map<String, BatchTransformDetail> transformations,
+                                                        Map<String, ErrorOutputWriter<Object, Object>>
+                                                          transformErrorSinkMap,
+                                                        OutputWriter<KEY_OUT, VAL_OUT> outputWriter) throws Exception {
+    // If the stageName is a connector or its a sink then create SinkEmitter
+    if (pipeline.getSinks().contains(stageName)) {
+      transformations.put(stageName, new BatchTransformDetail(stageName,
+        getTransformation(pipeline.getStage(stageName).getPluginType(), stageName),
+        new SinkEmitter<>(stageName, outputWriter)));
+      return;
+    }
 
-    for (String input : stageInfo.getInputs()) {
-      BatchTransformDetail inputEtlTransformDetail;
-      if (transformations.containsKey(input)) {
-        inputEtlTransformDetail = transformations.get(input);
-        BatchEmitter<BatchTransformDetail> emitter = inputEtlTransformDetail.getEmitter();
+    for (String output : pipeline.getDag().getNodeOutputs(stageName)) {
+      setETLTransformDetail(pipeline, output, transformations, transformErrorSinkMap, outputWriter);
+
+      if (transformations.containsKey(stageName)) {
+        BatchEmitter<BatchTransformDetail> emitter = transformations.get(stageName).getEmitter();
         Map<String, BatchTransformDetail> nextStages = emitter.getNextStages();
-
-        if (nextStages != null && !nextStages.containsKey(stageName)) {
-          emitter.addTransformDetail(stageName, etlTransformDetail);
+        if (nextStages != null && !nextStages.containsKey(output)) {
+          emitter.addTransformDetail(output, transformations.get(output));
         }
       } else {
-        StageInfo inputStage = pipeline.getStage(input);
         HashMap<String, BatchTransformDetail> map = new HashMap<>();
-        map.put(stageName, etlTransformDetail);
+        map.put(output, transformations.get(output));
+        StageInfo stageInfo = pipeline.getStage(stageName);
 
-        if (transformErrorSinkMap.containsKey(input)) {
-          transformations.put(input,
-                              new BatchTransformDetail(getTransformation(inputStage.getPluginType(), input),
-                                                       new TransformEmitter(input, map,
-                                                                            transformErrorSinkMap.get(input))));
+        if (transformErrorSinkMap.containsKey(stageName)) {
+          transformations.put(stageName,
+                              new BatchTransformDetail(stageName, getTransformation(stageInfo.getPluginType(),
+                                                                                   stageName),
+                                                       new TransformEmitter(stageName, map,
+                                                                            transformErrorSinkMap.get(stageName))));
         } else {
-          transformations.put(input,
-                              new BatchTransformDetail(getTransformation(inputStage.getPluginType(), input),
-                                                       new TransformEmitter(input, map,
-                                                                            transformErrorSinkMap.get(input))));
+          transformations.put(stageName,
+                              new BatchTransformDetail(stageName, getTransformation(stageInfo.getPluginType(),
+                                                                                   stageName),
+                                                       new TransformEmitter(stageName, map, null)));
         }
-
       }
-      setETLTransformDetail(pipeline, pipeline.getStage(input), transformations, transformErrorSinkMap);
     }
   }
 

@@ -54,7 +54,8 @@ public class TransformEmitter extends BatchEmitter<BatchTransformDetail> {
   @Override
   public void emit(Object value) {
     for (BatchTransformDetail etlTransformDetail : nextStages.values()) {
-        etlTransformDetail.process(value);
+      LOG.info("Emitting from stage: {}", stageName);
+      etlTransformDetail.process(value);
     }
   }
 

@@ -16,8 +16,9 @@
 
 package co.cask.cdap.etl.batch.mapreduce;
 
-import co.cask.cdap.etl.api.Destroyable;
 import co.cask.cdap.etl.batch.BatchTransformDetail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +27,8 @@ import java.util.Set;
  *
  * @param <IN>
  */
-public class BatchTransformExecutor<IN> implements Destroyable {
+public class BatchTransformExecutor<IN> {
+  private static final Logger LOG = LoggerFactory.getLogger(BatchTransformExecutor.class);
   private final Set<String> startingPoints;
   private final Map<String, BatchTransformDetail> transformDetailMap;
 
@@ -37,13 +39,9 @@ public class BatchTransformExecutor<IN> implements Destroyable {
 
   public void runOneIteration(IN input) throws Exception {
     for (String stageName : startingPoints) {
+      LOG.info("Starting from stage: {}", stageName);
       BatchTransformDetail transformDetail = transformDetailMap.get(stageName);
       transformDetail.process(input);
     }
-  }
-
-  @Override
-  public void destroy() {
-
   }
 }

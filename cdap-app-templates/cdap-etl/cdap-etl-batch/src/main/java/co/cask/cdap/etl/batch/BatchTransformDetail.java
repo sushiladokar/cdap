@@ -18,22 +18,29 @@ package co.cask.cdap.etl.batch;
 
 import co.cask.cdap.etl.api.Transformation;
 import co.cask.cdap.etl.api.batch.BatchEmitter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  *
  */
 public class BatchTransformDetail {
+  private static final Logger LOG = LoggerFactory.getLogger(BatchTransformDetail.class);
+  private final String stageName;
   private final Transformation transformation;
   private final BatchEmitter<BatchTransformDetail> emitter;
 
-  public BatchTransformDetail(Transformation transformation, BatchEmitter<BatchTransformDetail> emitter) {
+  public BatchTransformDetail(String stageName, Transformation transformation,
+                              BatchEmitter<BatchTransformDetail> emitter) {
+    this.stageName = stageName;
     this.transformation = transformation;
     this.emitter = emitter;
   }
 
   public void process(Object value) {
     try {
+      LOG.info("Calling transformation on stage: {}", stageName);
       transformation.transform(value, emitter);
     } catch (Exception e) {
       e.printStackTrace();

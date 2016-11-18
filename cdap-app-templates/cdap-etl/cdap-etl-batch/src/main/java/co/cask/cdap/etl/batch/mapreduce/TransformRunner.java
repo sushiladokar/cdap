@@ -156,29 +156,5 @@ public class TransformRunner<KEY, VALUE> {
   public void transform(KEY key, VALUE value) throws Exception {
     KeyValue<KEY, VALUE> input = new KeyValue<>(key, value);
     transformExecutor.runOneIteration(input);
-//    for (Map.Entry<String, Collection<Object>> transformedEntry : transformResponse.getSinksResults().entrySet()) {
-//      for (Object transformedRecord : transformedEntry.getValue()) {
-//        outputWriter.write(transformedEntry.getKey(), (KeyValue<Object, Object>) transformedRecord);
-//      }
-//    }
-
-//    for (Map.Entry<String, Collection<InvalidEntry<Object>>> errorEntry :
-//      transformResponse.getMapTransformIdToErrorEmitter().entrySet()) {
-//
-//      // this check is used to make sure we don't log the same warning multiple times,
-//      // but only log it once.
-//      if (transformsWithoutErrorDataset.contains(errorEntry.getKey())) {
-//        continue;
-//      }
-//      if (!errorEntry.getValue().isEmpty()) {
-//        if (!transformErrorSinkMap.containsKey(errorEntry.getKey())) {
-//          LOG.warn("Transform : {} has error records, but does not have a error dataset configured.",
-//                   errorEntry.getKey());
-//          transformsWithoutErrorDataset.add(errorEntry.getKey());
-//        } else {
-//          transformErrorSinkMap.get(errorEntry.getKey()).write(errorEntry.getValue());
-//        }
-//      }
-//    }
   }
 }

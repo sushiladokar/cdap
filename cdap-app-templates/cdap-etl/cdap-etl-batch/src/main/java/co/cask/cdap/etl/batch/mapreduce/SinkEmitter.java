@@ -20,6 +20,8 @@ import co.cask.cdap.api.dataset.lib.KeyValue;
 import co.cask.cdap.etl.api.InvalidEntry;
 import co.cask.cdap.etl.api.batch.BatchEmitter;
 import co.cask.cdap.etl.batch.BatchTransformDetail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -30,6 +32,7 @@ import javax.annotation.Nullable;
  * @param <VAL_OUT>
  */
 public class SinkEmitter<KEY_OUT, VAL_OUT> extends BatchEmitter<BatchTransformDetail> {
+  private static final Logger LOG = LoggerFactory.getLogger(SinkEmitter.class);
   private final OutputWriter outputWriter;
   private final String stageName;
 
@@ -42,6 +45,7 @@ public class SinkEmitter<KEY_OUT, VAL_OUT> extends BatchEmitter<BatchTransformDe
   public void emit(Object value) {
     // emit to context
     try {
+      LOG.info("Writing from SinkEmitter: {}", stageName);
       outputWriter.write(stageName, (KeyValue<Object, Object>) value);
     } catch (Exception e) {
       e.printStackTrace();

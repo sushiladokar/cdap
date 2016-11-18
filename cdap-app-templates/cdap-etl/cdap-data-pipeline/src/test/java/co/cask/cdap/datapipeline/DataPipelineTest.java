@@ -1312,6 +1312,8 @@ public class DataPipelineTest extends HydratorTestBase {
                                                Constants.Metrics.Tag.WORKFLOW, SmartWorkflow.NAME);
     getMetricsManager().waitForTotalMetricCount(tags, "user." + metric, expected, 20, TimeUnit.SECONDS);
     // wait for won't throw an exception if the metric count is greater than expected
-    Assert.assertEquals(expected, getMetricsManager().getTotalMetric(tags, "user." + metric));
+    long totalMetric = getMetricsManager().getTotalMetric(tags, "user." + metric);
+    System.out.println("actual: " + totalMetric);
+    Assert.assertEquals(expected, totalMetric);
   }
 }
