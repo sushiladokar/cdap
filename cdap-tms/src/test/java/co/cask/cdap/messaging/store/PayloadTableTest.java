@@ -41,24 +41,25 @@ public abstract class PayloadTableTest {
   protected abstract PayloadTable getPayloadTable() throws Exception;
 
   @Test
-  public void testStore() throws Exception {
+  public void testSingleMessage() throws Exception {
+    TopicId topicId = NamespaceId.DEFAULT.topic("single");
     String payload = "data";
     long txWritePtr = 123L;
     try (PayloadTable table = getPayloadTable()) {
       List<PayloadTable.Entry> entryList = new ArrayList<>();
-      entryList.add(new TestPayloadEntry(t1, txWritePtr, Bytes.toBytes(payload)));
+      entryList.add(new TestPayloadEntry(topicId, txWritePtr, Bytes.toBytes(payload)));
       table.store(entryList.iterator());
       byte[] messageId = new byte[MessageId.RAW_ID_SIZE];
       MessageId.putRawId(0L, (short) 0, 0L, (short) 0, messageId, 0);
-      CloseableIterator<PayloadTable.Entry> iterator = table.fetch(t1, txWritePtr, new MessageId(messageId),
+      CloseableIterator<PayloadTable.Entry> iterator = table.fetch(topicId, txWritePtr, new MessageId(messageId),
                                                                    true, Integer.MAX_VALUE);
       Assert.assertTrue(iterator.hasNext());
       PayloadTable.Entry entry = iterator.next();
       Assert.assertArrayEquals(Bytes.toBytes(payload), entry.getPayload());
       Assert.assertEquals(txWritePtr, entry.getTransactionWritePointer());
       Assert.assertFalse(iterator.hasNext());
-      table.delete(t1, txWritePtr);
-      iterator = table.fetch(t1, txWritePtr, new MessageId(messageId), true, Integer.MAX_VALUE);
+      table.delete(topicId, txWritePtr);
+      iterator = table.fetch(topicId, txWritePtr, new MessageId(messageId), true, Integer.MAX_VALUE);
       Assert.assertFalse(iterator.hasNext());
     }
   }

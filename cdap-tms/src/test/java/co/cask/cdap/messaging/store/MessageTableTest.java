@@ -43,25 +43,26 @@ public abstract class MessageTableTest {
 
   @Test
   public void testSingleMessage() throws Exception {
+    TopicId topicId = NamespaceId.DEFAULT.topic("single");
     String payload = "data";
     long txWritePtr = 123L;
     try (MessageTable table = getMessageTable()) {
       List<MessageTable.Entry> entryList = new ArrayList<>();
-      entryList.add(new TestMessageEntry(t1, true, true, txWritePtr, Bytes.toBytes(payload)));
+      entryList.add(new TestMessageEntry(topicId, true, true, txWritePtr, Bytes.toBytes(payload)));
       table.store(entryList.iterator());
       byte[] messageId = new byte[MessageId.RAW_ID_SIZE];
       MessageId.putRawId(0L, (short) 0, 0L, (short) 0, messageId, 0);
-      CloseableIterator<MessageTable.Entry> iterator = table.fetch(t1, new MessageId(messageId), true, 50, null);
+      CloseableIterator<MessageTable.Entry> iterator = table.fetch(topicId, new MessageId(messageId), true, 50, null);
       Assert.assertTrue(iterator.hasNext());
       MessageTable.Entry entry = iterator.next();
       Assert.assertArrayEquals(Bytes.toBytes(payload), entry.getPayload());
       Assert.assertFalse(iterator.hasNext());
-      iterator = table.fetch(t1, 0, 50, null);
+      iterator = table.fetch(topicId, 0, 50, null);
       entry = iterator.next();
       Assert.assertArrayEquals(Bytes.toBytes(payload), entry.getPayload());
       Assert.assertFalse(iterator.hasNext());
-      table.delete(t1, txWritePtr);
-      iterator = table.fetch(t1, new MessageId(messageId), true, 50, null);
+      table.delete(topicId, txWritePtr);
+      iterator = table.fetch(topicId, new MessageId(messageId), true, 50, null);
       Assert.assertFalse(iterator.hasNext());
     }
   }
@@ -80,8 +81,13 @@ public abstract class MessageTableTest {
       iterator = table.fetch(t1, 0, 85, null);
       checkPointerCount(iterator, 123, ImmutableSet.of(100L, 101L, 102L), 85);
 
+      // Read with all messages visible
+      Transaction tx = new Transaction(200, 200, new long[] { }, new long[] { }, -1);
+      iterator = table.fetch(t1, 0, Integer.MAX_VALUE, tx);
+      checkPointerCount(iterator, 123, ImmutableSet.of(100L, 101L, 102L), 150);
+
       // Read with 101 as invalid transaction
-      Transaction tx = new Transaction(200, 200, new long[] { 101 }, new long[] { }, -1);
+      tx = new Transaction(200, 200, new long[] { 101 }, new long[] { }, -1);
       iterator = table.fetch(t1, 0, Integer.MAX_VALUE, tx);
       checkPointerCount(iterator, 123, ImmutableSet.of(100L, 102L), 100);
 
@@ -97,6 +103,17 @@ public abstract class MessageTableTest {
       // Reading non-tx from t2 should provide 150 items
       iterator = table.fetch(t2, 0, Integer.MAX_VALUE, null);
       checkPointerCount(iterator, 321, ImmutableSet.of(100L, 101L, 102L), 150);
+
+      // Delete txPtr entries for 101, and then try fetching again for that
+      table.delete(t1, 101);
+      iterator = table.fetch(t1, 0, Integer.MAX_VALUE, null);
+      checkPointerCount(iterator, 123, ImmutableSet.of(100L, 102L), 100);
+
+      // Delete txPtr entries for 100, and then try fetching transactionally all data
+      table.delete(t1, 100);
+      tx = new Transaction(200, 200, new long[] { }, new long[] { }, -1);
+      iterator = table.fetch(t1, 0, Integer.MAX_VALUE, tx);
+      checkPointerCount(iterator, 123, ImmutableSet.of(102L), 50);
     }
   }
 
@@ -107,7 +124,7 @@ public abstract class MessageTableTest {
       MessageTable.Entry entry = entries.next();
       Assert.assertArrayEquals(Bytes.toBytes(payload), entry.getPayload());
       if (entry.isPayloadReference() || entry.isTransactional()) {
-        // fetch should have skipped over 101 which is an invalid transaction
+        // fetch should have only acceptable write pointers
         Assert.assertTrue(acceptablePtrs.contains(entry.getTransactionWritePointer()));
       }
       count++;
