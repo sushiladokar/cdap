@@ -15,47 +15,57 @@
  */
 
 import React, {PropTypes} from 'react';
-import PrimitiveSchemaRow from 'components/SchemaEditor/PrimitiveSchemaRow';
 import ArraySchemaRow from 'components/SchemaEditor/ArraySchemaRow';
 import MapSchemaRow from 'components/SchemaEditor/MapSchemaRow';
 import UnionSchemaRow from 'components/SchemaEditor/UnionSchemaRow';
 import EnumSchemaRow from 'components/SchemaEditor/EnumSchemaRow';
 import RecordSchemaRow from 'components/SchemaEditor/RecordSchemaRow';
+import {parseType} from 'components/SchemaEditor/SchemaHelpers';
+
 
 require('./AbstractSchemaRow.less');
 
-export default function AbstractSchemaRow({row}) {
+export default function AbstractSchemaRow({row, onChange}) {
   const renderSchemaRow = (row) => {
-    switch(row.displayType) {
-      case 'boolean':
-      case 'bytes':
-      case 'double':
-      case 'float':
-      case 'int':
-      case 'long':
-      case 'string':
-        return (
-          <PrimitiveSchemaRow row={row}/>
-        );
+    let type = row;
+    if (typeof row === 'object') {
+      type = parseType(type).displayType;
+    }
+    switch(type) {
       case 'array':
         return (
-          <ArraySchemaRow row={row} />
+          <ArraySchemaRow
+            row={row}
+            onChange={onChange}
+          />
         );
       case 'map':
         return (
-          <MapSchemaRow row={row} />
+          <MapSchemaRow
+            row={row}
+            onChange={onChange}
+          />
         );
       case 'union':
         return (
-          <UnionSchemaRow row={row} />
+          <UnionSchemaRow
+            row={row}
+            onChange={onChange}
+          />
         );
       case 'enum':
         return (
-          <EnumSchemaRow row={row} />
+          <EnumSchemaRow
+            row={row}
+            onChange={onChange}
+          />
         );
       case 'record':
         return (
-          <RecordSchemaRow row={row} />
+          <RecordSchemaRow
+            row={row}
+            onChange={onChange}
+          />
         );
       default:
         return null;
@@ -70,9 +80,6 @@ export default function AbstractSchemaRow({row}) {
   );
 }
 AbstractSchemaRow.propTypes = {
-  row: PropTypes.shape({
-    name: PropTypes.string,
-    type: PropTypes.any,
-    displayType: PropTypes.string
-  })
+  row: PropTypes.any,
+  onChange: PropTypes.func.isRequired
 };

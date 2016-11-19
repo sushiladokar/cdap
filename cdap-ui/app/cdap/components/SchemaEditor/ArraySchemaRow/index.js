@@ -23,23 +23,40 @@ require('./ArraySchemaRow.less');
 export default class ArraySchemaRow extends Component{
   constructor(props) {
     super(props);
-    if (props.row.type) {
+    if (typeof props.row.type === 'object') {
       let item = parseType(props.row.type.getItemsType());
       this.state = {
         displayType: item.displayType,
-        row: props.row
+        parsedType: props.row.type.getItemsType()
       };
     } else {
       this.state = {
-        row: null,
-        displayType: 'string'
+        displayType: props.row.type || 'string',
+        parsedType: props.row.type || 'string'
       };
     }
     this.onTypeChange = this.onTypeChange.bind(this);
+    setTimeout(() => {
+      props.onChange({
+        type: 'array',
+        items: this.state.displayType
+      });
+    });
   }
   onTypeChange(e) {
     this.setState({
       displayType: e.target.value
+    }, () => {
+      this.props.onChange({
+        type: 'array',
+        items: this.state.displayType
+      });
+    });
+  }
+  onChange(itemsState) {
+    this.props.onChange({
+      type: 'array',
+      items: itemsState
     });
   }
   render() {
@@ -55,9 +72,8 @@ export default class ArraySchemaRow extends Component{
         {
           checkComplexType(this.state.displayType) ?
             <AbstractSchemaRow
-              row={{
-                displayType: this.state.displayType
-              }}
+              row={this.state.displayType}
+              onChange={this.onChange.bind(this)}
             />
           :
             null
@@ -68,8 +84,6 @@ export default class ArraySchemaRow extends Component{
 }
 
 ArraySchemaRow.propTypes = {
-  row: PropTypes.shape({
-    name: PropTypes.string,
-    type: PropTypes.any
-  })
+  row: PropTypes.any,
+  onChange: PropTypes.func.isRequired
 };

@@ -15,36 +15,36 @@
  */
 
 import React, {PropTypes, Component} from 'react';
-import {parseType} from 'components/SchemaEditor/SchemaHelpers';
+import {SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor/SchemaHelpers';
 import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
 require('./RecordSchemaRow.less');
 import uuid from 'node-uuid';
+import {Input} from 'reactstrap';
+import SelectWithOptions from 'components/SelectWithOptions';
 
 export default class RecordSchemaRow extends Component{
   constructor(props) {
     super(props);
-    if (props.row.type) {
-      let rowType = parseType(props.row.type);
-      let fields = rowType.type.getFields().map((field) => {
-        let type = field.getType();
-
-        let partialObj = parseType(type);
-
-        return Object.assign({}, partialObj, {
-          id: uuid.v4(),
-          name: field.getName()
-        });
+    if (typeof props.row === 'object') {
+      let displayFields = props.row;
+      let parsedFields = displayFields.map(field => {
+        let {name, type} = field;
+        return {
+          name,
+          type
+        };
       });
       this.state = {
         type: 'record',
         name: uuid.v4(),
-        fields
+        displayFields,
+        parsedFields
       };
     } else {
       this.state = {
         type: 'record',
         name: uuid.v4(),
-        fields: [
+        displayFields: [
           {
             name: '',
             type: 'string',
@@ -53,23 +53,96 @@ export default class RecordSchemaRow extends Component{
             id: uuid.v4(),
             nested: false
           }
+        ],
+        parsedFields: [
+          {
+            name: '',
+            type: 'string'
+          }
         ]
       };
     }
+    setTimeout(() => {
+      props.onChange({
+        type: 'record',
+        name: this.state.name,
+        fields: this.state.parsedFields
+      });
+    });
+  }
+  onNameChange(index, e) {
+    let displayFields = this.state.displayFields;
+    let parsedFields = this.state.parsedFields;
+    displayFields[index].name = e.target.value;
+    parsedFields[index].name = e.target.value;
+    this.setState({
+      parsedFields,
+      displayFields
+    }, () => {
+      this.props.onChange(parsedFields);
+    });
+  }
+  onTypeChange(index, e) {
+    let displayFields = this.state.displayFields;
+    displayFields[index].displayType = e.target.value;
+    displayFields[index].type = e.target.value;
+    let parsedFields = this.state.parsedFields;
+    parsedFields[index].type = e.target.value;
+    this.setState({
+      displayFields,
+      parsedFields
+    });
+  }
+  onChange(index, fieldType) {
+    let parsedFields = this.state.parsedFields;
+    parsedFields[index].type = fieldType;
+    this.setState({
+      parsedFields
+    }, () => {
+      this.props.onChange({
+        name: uuid.v4(),
+        type: 'record',
+        fields: this.state.parsedFields
+      });
+    });
   }
   render() {
     return (
       <div className="record-schema-row">
         <div className="record-schema-records-row">
           {
-            this.state.fields.map( (field, index) => {
-              return (
-                <AbstractSchemaRow
-                  row={field}
-                  key={index}
-                />
-              );
-            })
+            this.state
+                .displayFields
+                .map((row, index) => {
+                  return (
+                    <div
+                      className="schema-row"
+                      key={index}
+                    >
+                      <Input
+                        className="field-name"
+                        value={row.name}
+                        onChange={this.onNameChange.bind(this, index)}
+                      />
+                      <SelectWithOptions
+                        className="field-type"
+                        options={SCHEMA_TYPES.types}
+                        value={row.displayType}
+                        onChange={this.onTypeChange.bind(this, index)}
+                      />
+                      <div className="field-isnull">TBD</div>
+                      {
+                        checkComplexType(row.displayType) ?
+                          <AbstractSchemaRow
+                            row={row.type}
+                            onChange={this.onChange.bind(this, index)}
+                          />
+                        :
+                          null
+                      }
+                    </div>
+                  );
+                })
           }
         </div>
       </div>
@@ -78,8 +151,6 @@ export default class RecordSchemaRow extends Component{
 }
 
 RecordSchemaRow.propTypes = {
-  row: PropTypes.shape({
-    name: PropTypes.string,
-    type: PropTypes.any
-  })
+  row: PropTypes.any,
+  onChange: PropTypes.func.isRequired
 };

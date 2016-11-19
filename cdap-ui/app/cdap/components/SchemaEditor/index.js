@@ -17,18 +17,39 @@
 import React, {Component} from 'react';
 import {Provider} from 'react-redux';
 require('./SchemaEditor.less');
-import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
 import {getParsedSchema} from 'components/SchemaEditor/SchemaHelpers';
-
+import RecordSchemaRow from 'components/SchemaEditor/RecordSchemaRow';
 import SchemaStore from 'components/SchemaEditor/SchemaStore';
 
 export default class SchemaEditor extends Component {
   constructor(props) {
     super(props);
     let state = SchemaStore.getState();
+    let rows = getParsedSchema(state.schema);
     this.state = {
-      rows: getParsedSchema(state.schema)
+      parsedRows: rows,
     };
+    const updateRowsAndDisplayFields = () => {
+      let state = SchemaStore.getState();
+      let rows;
+      try {
+        rows = getParsedSchema(state.schema);
+      } catch(e) {
+        return;
+      }
+      this.setState({
+        parsedRows: rows
+      });
+    };
+    SchemaStore.subscribe(updateRowsAndDisplayFields.bind(this));
+  }
+  onChange(schema) {
+    SchemaStore.dispatch({
+      type: 'FIELD_UPDATE',
+      payload: {
+        schema
+      }
+    });
   }
   render() {
     return (
@@ -45,18 +66,21 @@ export default class SchemaEditor extends Component {
               Null
             </div>
           </div>
-          {
-            this.state
-                .rows
-                .map((row, index) => {
-                  return (
-                    <AbstractSchemaRow
-                      key={index}
-                      row={row}
-                    />
-                  );
-                })
-          }
+          <div className="schema-body">
+            <RecordSchemaRow
+              row={this.state.parsedRows}
+              onChange={this.onChange.bind(this)}
+            />
+          </div>
+          <pre>
+            {
+              JSON.stringify(
+                SchemaStore.getState(),
+                null,
+                2
+              )
+            }
+          </pre>
         </div>
       </Provider>
     );

@@ -34,6 +34,18 @@ export default class EnumSchemaRow extends Component {
       };
     }
   }
+  onSymbolChange(index, e) {
+    let symbols = this.state.symbols;
+    symbols[index] = e.target.value;
+    this.setState({
+      symbols
+    }, () => {
+      this.props.onChange({
+        type: 'enum',
+        symbols
+      });
+    });
+  }
 
   render() {
     return (
@@ -45,6 +57,7 @@ export default class EnumSchemaRow extends Component {
                 <Input
                   key={index}
                   value={symbol}
+                  onChange={this.onSymbolChange.bind(this, index)}
                 />
               );
             })
@@ -56,8 +69,6 @@ export default class EnumSchemaRow extends Component {
 }
 
 EnumSchemaRow.propTypes = {
-  row: PropTypes.shape({
-    name: PropTypes.string,
-    type: PropTypes.any
-  })
+  row: PropTypes.any,
+  onChange: PropTypes.func.isRequired
 };

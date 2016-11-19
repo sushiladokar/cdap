@@ -24,32 +24,37 @@ require('./UnionSchemaRow.less');
 export default class UnionSchemaRow extends Component {
   constructor(props) {
     super(props);
-    if (props.row.type) {
-      let types = props.row.type.getTypes().map(type => parseType(type));
+    if (typeof props.row.type === 'object') {
+      let types = props.row.type.getTypes();
+      let parsedTypes = types.map(type => parseType(type));
+      let displayTypes = parsedTypes.map(type => type.displayType);
+
       this.state = {
-        types
+        types: displayTypes
       };
     } else {
       this.state = {
         types: [
-          {
-            type: 'string',
-            displayType: 'string',
-            nullable: false,
-            nested: false
-          }
+          'string'
         ]
       };
     }
+    setTimeout(() => {
+      props.onChange(this.state.types);
+    });
     this.onTypeChange = this.onTypeChange.bind(this);
   }
-  onTypeChange(index, e) {
-    let types = this.state.types;
-    types[index].type = e.target.value;
-    types[index].displayType = e.target.value;
+  onTypeChange(e) {
     this.setState({
-      types
+      types: [e.target.value]
+    }, () => {
+      this.onChange(this.state.types[0]);
     });
+  }
+  onChange(typeState) {
+    this.props.onChange([
+      typeState
+    ]);
   }
   render() {
     return (
@@ -61,17 +66,16 @@ export default class UnionSchemaRow extends Component {
                 <div key={index}>
                   <SelectWithOptions
                     options={SCHEMA_TYPES.types}
-                    value={type.displayType}
-                    onChange={this.onTypeChange.bind(this, index)}
+                    value={type}
+                    onChange={this.onTypeChange.bind(this)}
                   />
                   <div className="field-type"></div>
                   <div className="field-isnull text-center"> TBD </div>
                   {
-                    checkComplexType(type.displayType) ?
+                    checkComplexType(type) ?
                       <AbstractSchemaRow
-                        row={{
-                          displayType: type.displayType
-                        }}
+                        row={type}
+                        onChange={this.onChange.bind(this)}
                       />
                     :
                       null
@@ -86,8 +90,6 @@ export default class UnionSchemaRow extends Component {
   }
 }
 UnionSchemaRow.propTypes = {
-  row: PropTypes.shape({
-    name: PropTypes.string,
-    type: PropTypes.any
-  })
+  row: PropTypes.any,
+  onChange: PropTypes.func.isRequired
 };

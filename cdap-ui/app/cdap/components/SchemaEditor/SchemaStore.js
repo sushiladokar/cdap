@@ -34,12 +34,9 @@ const defaultState = {
 
 const schema = (state = defaultState, action = defaultAction) => {
   switch(action.type) {
-    case 'ADD-ROW':
-      return [
-        ...state.slice(0, action.payload.index),
-        defaultState,
-        ...state.slice(action.payload.index, state.length)
-      ];
+    case 'FIELD_UPDATE': {
+      return Object.assign({}, state, {fields: action.payload.schema.fields});
+    }
     default:
       return state;
   }

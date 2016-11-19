@@ -24,10 +24,10 @@ require('./MapSchemaRow.less');
 export default class MapSchemaRow extends Component {
   constructor(props) {
     super(props);
-    if (props.row.type) {
+    if (typeof props.row.type === 'object') {
       let rowType = parseType(props.row.type);
       this.state = {
-        name: props.row.name,
+        name: rowType.name,
         keysType: rowType.type.getKeysType().getTypeName(),
         valuesTypes: rowType.type.getValuesType().getTypeName()
       };
@@ -39,17 +39,42 @@ export default class MapSchemaRow extends Component {
         type: props.row.type || null
       };
     }
+    setTimeout(() => {
+      this.props.onChange({
+        type: 'map',
+        keys: this.state.keysType,
+        values: this.state.valuesType
+      });
+    });
     this.onKeysTypeChange = this.onKeysTypeChange.bind(this);
     this.onValuesTypeChange = this.onValuesTypeChange.bind(this);
   }
   onKeysTypeChange(e) {
     this.setState({
       keysType: e.target.value
+    }, () => {
+      this.onKeysChange(this.state.keysType);
     });
   }
   onValuesTypeChange(e) {
     this.setState({
       valuesType: e.target.value
+    }, () => {
+      this.onValuesChange(this.state.valuesType);
+    });
+  }
+  onKeysChange(keysState) {
+    this.props.onChange({
+      type: 'map',
+      keys: keysState,
+      values: this.state.valuesType
+    });
+  }
+  onValuesChange(valuesState) {
+    this.props.onChange({
+      type: 'map',
+      keys: this.state.keysType,
+      values: valuesState
     });
   }
   render() {
@@ -70,9 +95,8 @@ export default class MapSchemaRow extends Component {
             {
               checkComplexType(this.state.keysType) ?
                 <AbstractSchemaRow
-                  row={{
-                    displayType: this.state.keysType
-                  }}
+                  row={this.state.keysType}
+                  onChange={this.onKeysChange.bind(this)}
                 />
               :
                 null
@@ -92,9 +116,8 @@ export default class MapSchemaRow extends Component {
               {
                 checkComplexType(this.state.valuesType) ?
                   <AbstractSchemaRow
-                    row={{
-                      displayType: this.state.valuesType
-                    }}
+                    row={this.state.valuesType}
+                    onChange={this.onValuesChange.bind(this)}
                   />
                 :
                   null
@@ -107,8 +130,6 @@ export default class MapSchemaRow extends Component {
 }
 
 MapSchemaRow.propTypes = {
-  row: PropTypes.shape({
-    name: PropTypes.string,
-    type: PropTypes.any
-  })
+  row: PropTypes.any,
+  onChange: PropTypes.func.isRequired
 };
