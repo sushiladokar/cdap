@@ -104,8 +104,10 @@ public class ZKRouteStore implements RouteStore {
   @Override
   public void delete(final ProgramId serviceId) throws NotFoundException {
     OperationFuture<String> future = zkClient.delete(getZKPath(serviceId));
+    SettableFuture<RouteConfig> oldConfigFuture = routeConfigMap.get(serviceId);
     try {
       future.get(ZK_TIMEOUT_SECS, TimeUnit.SECONDS);
+      routeConfigMap.remove(serviceId, oldConfigFuture);
     } catch (ExecutionException | InterruptedException | TimeoutException ex) {
       if (ex.getCause() instanceof KeeperException.NoNodeException) {
         throw new NotFoundException(String.format("Route Config for Service %s was not found.", serviceId));
